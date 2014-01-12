@@ -2,57 +2,66 @@
 package parsec
 
 import (
-	"fmt"
-	"regexp"
+    "regexp"
 )
 
-var _ = fmt.Sprintf("keep 'fmt' import during debugging")
-
-var patterns = make(map[string]*regexp.Regexp)
-
-type Scanner struct {
-	buf    []byte
-	cursor int
+type SimpleScanner struct {
+    buf      []byte                    // input buffer
+    cursor   int                       // cursor within input buffer
+    patterns map[string]*regexp.Regexp // cache of compiled regular expression
 }
 
-func NewScanner(text []byte) *Scanner {
-	return &Scanner{text, 0}
+func NewScanner(text []byte) Scanner {
+    return &SimpleScanner{
+        buf:      text,
+        cursor:   0,
+        patterns: make(map[string]*regexp.Regexp),
+    }
 }
 
-// Match current input with `pattern` regular expression. Return, matching
-// token as byte-slice and a new-instance of scanner with advanced cursor.
-func (s Scanner) Match(pattern string) ([]byte, *Scanner) {
-	if pattern[0] != '^' {
-		panic("match patterns must begin with `^`")
-	}
-	var regc *regexp.Regexp
-	var err error
-
-	regc = patterns[pattern]
-	if regc == nil {
-		if regc, err = regexp.Compile(pattern); err == nil {
-			patterns[pattern] = regc
-		} else {
-			panic(err.Error())
-		}
-	}
-	if token := regc.Find(s.buf[s.cursor:]); token != nil {
-		s.cursor += len(token)
-		return token, &s
-	}
-	return nil, &s
+func (s *SimpleScanner) Clone() Scanner {
+    return &SimpleScanner{
+        buf:      s.buf,
+        cursor:   s.cursor,
+        patterns: s.patterns,
+    }
 }
 
-// Skip whitespace. Return skipped whitespaces as byte-slice and new instance
-// of scanner with advanced cursor.
-func (s Scanner) SkipWS() ([]byte, *Scanner) {
-	return s.Match(`^[ \t\r\n]+`)
+func (s *SimpleScanner) GetCursor() int {
+    return s.cursor
 }
 
-// Detect end-of-file in the input return a boolean indicating the same.
-func (s Scanner) Endof() bool {
-	if s.cursor >= len(s.buf) {
-		return true
-	}
-	return false
+// Match current input with `pattern` regular expression.
+func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
+    var regc *regexp.Regexp
+    var err error
+
+    if pattern[0] != '^' {
+        panic("match patterns must begin with `^`")
+    }
+
+    regc = s.patterns[pattern]
+    if regc == nil {
+        if regc, err = regexp.Compile(pattern); err == nil {
+            s.patterns[pattern] = regc
+        } else {
+            panic(err.Error())
+        }
+    }
+    if token := regc.Find(s.buf[s.cursor:]); token != nil {
+        s.cursor += len(token)
+        return token, s
+    }
+    return nil, s
+}
+
+func (s SimpleScanner) SkipWS() ([]byte, Scanner) {
+    return s.Match(`^[ \t\r\n]+`)
+}
+
+func (s SimpleScanner) Endof() bool {
+    if s.cursor >= len(s.buf) {
+        return true
+    }
+    return false
 }
