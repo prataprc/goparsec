@@ -58,9 +58,8 @@ func Token(pattern string, name string) Parser {
 				Position: news.GetCursor(),
 			}
 			return &t, news
-		} else {
-			return nil, s
 		}
+		return nil, s
 	}
 }
 

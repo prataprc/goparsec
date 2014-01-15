@@ -194,7 +194,7 @@ func Maybe(callb Nodify, parser Parser) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		n, news := parser(s.Clone())
 		if n == nil {
-			return nil, s
+			return []ParsecNode{}, s
 		}
 		return docallback(callb, []ParsecNode{n}), news
 	}

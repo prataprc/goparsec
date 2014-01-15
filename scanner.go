@@ -55,11 +55,11 @@ func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	return nil, s
 }
 
-func (s SimpleScanner) SkipWS() ([]byte, Scanner) {
+func (s *SimpleScanner) SkipWS() ([]byte, Scanner) {
 	return s.Match(`^[ \t\r\n]+`)
 }
 
-func (s SimpleScanner) Endof() bool {
+func (s *SimpleScanner) Endof() bool {
 	if s.cursor >= len(s.buf) {
 		return true
 	}
