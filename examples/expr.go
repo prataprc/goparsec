@@ -1,12 +1,20 @@
-package main
+// Examples provide an example parser to parse basic arithmetic expression
+// based on the following rule.
+//
+//     expr  -> sum
+//     prod  -> value (mulop value)*
+//     mulop -> "*"
+//           |  "/"
+//     sum   -> prod (addop prod)*
+//     addop -> "+"
+//           |  "-"
+//     value -> num
+//           | "(" expr ")"
+package examples
 
 import (
-	"fmt"
-	"github.com/prataprc/golib/parsec"
-	"io/ioutil"
-	"os"
+	"github.com/prataprc/goparsec"
 	"strconv"
-	"time"
 )
 
 // Terminal rats
@@ -17,18 +25,9 @@ var subop = parsec.Token(`^-`, "SUB")
 var multop = parsec.Token(`^\*`, "MULT")
 var divop = parsec.Token(`^/`, "DIV")
 
-// expr  -> sum
-// prod  -> (mulop value)*
-// mulop -> "*"
-//       |  "/"
-// sum   -> (addop prod)*
-// addop -> "+"
-//       |  "-"
-// value -> num
-//       | ( expr )
-
-// Construct parser-combinator for parsing arithmetic expression on integer
-func expr(s parsec.Scanner) (parsec.ParsecNode, *parsec.Scanner) {
+// Expr constructs parser-combinator for parsing arithmetic expression on
+// integer
+func Expr(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
 	nodify := func(ns []parsec.ParsecNode) parsec.ParsecNode {
 		if len(ns) == 0 {
 			return nil
@@ -38,7 +37,7 @@ func expr(s parsec.Scanner) (parsec.ParsecNode, *parsec.Scanner) {
 	return parsec.OrdChoice(nodify, sum)(s)
 }
 
-func prod(s parsec.Scanner) (parsec.ParsecNode, *parsec.Scanner) {
+func prod(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
 	nodifyop := func(ns []parsec.ParsecNode) parsec.ParsecNode {
 		if len(ns) == 0 {
 			return nil
@@ -76,7 +75,7 @@ func prod(s parsec.Scanner) (parsec.ParsecNode, *parsec.Scanner) {
 	return parsec.And(nodify, value, k)(s)
 }
 
-func sum(s parsec.Scanner) (parsec.ParsecNode, *parsec.Scanner) {
+func sum(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
 	nodifyop := func(ns []parsec.ParsecNode) parsec.ParsecNode {
 		if len(ns) == 0 {
 			return nil
@@ -114,17 +113,17 @@ func sum(s parsec.Scanner) (parsec.ParsecNode, *parsec.Scanner) {
 	return parsec.And(nodify, prod, k)(s)
 }
 
-func groupExpr(s parsec.Scanner) (parsec.ParsecNode, *parsec.Scanner) {
+func groupExpr(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
 	nodify := func(ns []parsec.ParsecNode) parsec.ParsecNode {
 		if len(ns) == 0 {
 			return nil
 		}
 		return ns[1]
 	}
-	return parsec.And(nodify, openparan, expr, closeparan)(s)
+	return parsec.And(nodify, openparan, Expr, closeparan)(s)
 }
 
-func value(s parsec.Scanner) (parsec.ParsecNode, *parsec.Scanner) {
+func value(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
 	nodify := func(ns []parsec.ParsecNode) parsec.ParsecNode {
 		if len(ns) == 0 {
 			return nil
@@ -135,20 +134,4 @@ func value(s parsec.Scanner) (parsec.ParsecNode, *parsec.Scanner) {
 		return ns[0]
 	}
 	return parsec.OrdChoice(nodify, parsec.Int(), groupExpr)(s)
-}
-
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Printf("Usage: go run expr.go <expression-file>\n")
-		os.Exit(1)
-	}
-	text, _ := ioutil.ReadFile(os.Args[1])
-	s := parsec.NewScanner(text)
-	count := int64(10000)
-	t1 := time.Now().UnixNano()
-	for i := int64(0); i < count; i++ {
-		expr(*s)
-	}
-	t2 := time.Now().UnixNano()
-	fmt.Printf("Takes %vnS to evaluate \n", (t2-t1)/count)
 }
