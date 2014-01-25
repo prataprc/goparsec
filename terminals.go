@@ -18,7 +18,7 @@ func Char() Parser {
 // Int returns a parser function to match an integer literal in the input
 // stream.
 func Int() Parser {
-	return Token(`^[0-9]+`, "INT")
+	return Token(`^-?[0-9]+`, "INT")
 }
 
 // Hex returns a parser function to match a hexadecimal literal in the input
@@ -36,7 +36,7 @@ func Oct() Parser {
 // Float returns a parser function to match a float literal in the input
 // stream.
 func Float() Parser {
-	return Token(`^[0-9]*\.[0-9]+`, "FLOAT")
+	return Token(`^-?[0-9]*\.[0-9]+`, "FLOAT")
 }
 
 // Ident returns a parser function to match an identifier token in the input
