@@ -1,5 +1,6 @@
 // parsec also supplies a basic set of token parsers that can be used to
 // create higher order parser using one of the many combinators.
+
 package parsec
 
 // String returns a parser function to match a double quoted string in the

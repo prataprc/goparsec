@@ -1,16 +1,20 @@
 // scanner to parse terminals from input text.
+
 package parsec
 
 import (
 	"regexp"
 )
 
+// SimpleScanner implements Scanner interface based on golang's regexp module.
 type SimpleScanner struct {
 	buf      []byte                    // input buffer
 	cursor   int                       // cursor within input buffer
 	patterns map[string]*regexp.Regexp // cache of compiled regular expression
 }
 
+// NewScanner creates and returns a reference to new instance of SimpleScanner
+// object.
 func NewScanner(text []byte) Scanner {
 	return &SimpleScanner{
 		buf:      text,
@@ -31,7 +35,6 @@ func (s *SimpleScanner) GetCursor() int {
 	return s.cursor
 }
 
-// Match current input with `pattern` regular expression.
 func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	var regc *regexp.Regexp
 	var err error
