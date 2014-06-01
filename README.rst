@@ -106,8 +106,8 @@ the scanner library supplies method receivers like `Match()`, `SkipWS()` and
 `Endof()`. refer to scanner.go for more information on each of these methods.
 
 Check out this example program that uses `parsec` tool to do arithmetic
-expression evaluation for integers,
-https://github.com/prataprc/golib/blob/master/parsec/examples/expr.go.
+expression evaluation for integers, 
+https://github.com/prataprc/goparsec/blob/master/examples/expr.go.
 
 .. code-block:: bash
 
