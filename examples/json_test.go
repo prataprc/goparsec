@@ -10,9 +10,11 @@
 package examples
 
 import (
-	"testing"
-	//"github.com/prataprc/goparsec"
-	"reflect"
+    "encoding/json"
+    "fmt"
+    "io/ioutil"
+    "reflect"
+    "testing"
 )
 
 var jsonText = `{ "inelegant":27.53096820876087,
@@ -21,73 +23,157 @@ var jsonText = `{ "inelegant":27.53096820876087,
 "arrogantness":null,
 "unagrarian":false
 }`
+
 var jsonVal = map[string]interface{}{
-	"inelegant":    27.53096820876087,
-	"horridness":   true,
-	"iridodesis":   []interface{}{79.1253026404128, nil, "hello world", false, 10},
-	"arrogantness": nil,
-	"unagrarian":   false,
+    "inelegant":    27.53096820876087,
+    "horridness":   true,
+    "iridodesis":   []interface{}{79.1253026404128, nil, "hello world", false, 10},
+    "arrogantness": nil,
+    "unagrarian":   false,
 }
 
 func TestJson(t *testing.T) {
-	var refs = [][2]interface{}{
-		{`-10000`, -10000},
-		{`-10.11231`, -10.11231},
-		{`"hello world"`, "hello world"},
-		{`true`, true},
-		{`false`, false},
-		{`null`, nil},
-		{`[79.1253026404128,null,"hello world", false, 10]`,
-			[]interface{}{79.1253026404128, nil, "hello world", false, 10},
-		},
-		{jsonText, jsonVal},
-	}
-	for _, x := range refs {
-		v := Value(JsonParse([]byte(x[0].(string))))
-		if !reflect.DeepEqual(v, x[1]) {
-			t.Fatalf("Mismatch for %v %v\n", v, x[1])
-		}
-	}
+    var largeVal []interface{}
+    var smallMap map[string]interface{}
+
+    largeText, err := ioutil.ReadFile("./large.json")
+    if err != nil {
+        t.Fatal(err)
+    }
+    json.Unmarshal(largeText, &largeVal)
+
+    smallText := []byte(jsonText)
+    json.Unmarshal(smallText, &smallMap)
+
+    var refs = [][2]interface{}{
+        {[]byte(`-10000`), -10000.0},
+        {[]byte(`-10.11231`), -10.11231},
+        {[]byte(`"hello world"`), "hello world"},
+        {[]byte(`true`), true},
+        {[]byte(`false`), false},
+        {[]byte(`null`), nil},
+        {[]byte(`[79.1253026404128,null,"hello world", false, 10]`),
+            []interface{}{79.1253026404128, nil, "hello world", false, 10.0},
+        },
+        {smallText, smallMap},
+        //{largeText, largeVal},
+    }
+    for _, x := range refs {
+        v := Value(JSONParse(x[0].([]byte)))
+        if !reflect.DeepEqual(v, x[1]) {
+            fmt.Println(v)
+            fmt.Println(x[1])
+            t.Fatal("Mismatch")
+        }
+    }
 }
 
-func BenchmarkJsonInt(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		JsonParse([]byte(`10000`))
-	}
+func BenchmarkJSONInt(b *testing.B) {
+    text := []byte(`10000`)
+    for i := 0; i < b.N; i++ {
+        JSONParse(text)
+    }
+    b.SetBytes(int64(len(text)))
 }
 
-func BenchmarkJsonFloat(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		JsonParse([]byte(`-10.11231`))
-	}
+func BenchmarkJSONFloat(b *testing.B) {
+    text := []byte(`-10.11231`)
+    for i := 0; i < b.N; i++ {
+        JSONParse(text)
+    }
+    b.SetBytes(int64(len(text)))
 }
 
-func BenchmarkJsonString(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		JsonParse([]byte(`"hello world"`))
-	}
+func BenchmarkJSONString(b *testing.B) {
+    text := []byte(`"hello world"`)
+    for i := 0; i < b.N; i++ {
+        JSONParse(text)
+    }
+    b.SetBytes(int64(len(text)))
 }
 
-func BenchmarkJsonBool(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		JsonParse([]byte(`true`))
-	}
+func BenchmarkJSONBool(b *testing.B) {
+    text := []byte(`true`)
+    for i := 0; i < b.N; i++ {
+        JSONParse(text)
+    }
+    b.SetBytes(int64(len(text)))
 }
 
-func BenchmarkJsonNull(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		JsonParse([]byte(`null`))
-	}
+func BenchmarkJSONNull(b *testing.B) {
+    text := []byte(`null`)
+    for i := 0; i < b.N; i++ {
+        JSONParse(text)
+    }
+    b.SetBytes(int64(len(text)))
 }
 
-func BenchmarkJsonArray(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		JsonParse([]byte(`[79.1253026404128,null,"hello world", false, 10]`))
-	}
+func BenchmarkJSONArray(b *testing.B) {
+    text := []byte(`[79.1253026404128,null,"hello world", false, 10]`)
+    for i := 0; i < b.N; i++ {
+        Value(JSONParse(text))
+    }
+    b.SetBytes(int64(len(text)))
 }
 
-func BenchmarkJsonMap(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		JsonParse([]byte(jsonText))
-	}
+func BenchmarkJSONMap(b *testing.B) {
+    for i := 0; i < b.N; i++ {
+        Value(JSONParse([]byte(jsonText)))
+    }
+    b.SetBytes(int64(len(jsonText)))
+}
+
+func BenchmarkJSONMedium(b *testing.B) {
+    text, _ := ioutil.ReadFile("./medium.json")
+    for i := 0; i < b.N; i++ {
+        Value(JSONParse(text))
+    }
+    b.SetBytes(int64(len(text)))
+}
+
+//func BenchmarkJSONLarge(b *testing.B) {
+//    text, _ := ioutil.ReadFile("./large.json")
+//    for i := 0; i < b.N; i++ {
+//        Value(JSONParse(text))
+//    }
+//    b.SetBytes(int64(len(text)))
+//}
+
+func BenchmarkEncJSONArray(b *testing.B) {
+    var val []interface{}
+
+    text := []byte(`[79.1253026404128,null,"hello world", false, 10]`)
+    for i := 0; i < b.N; i++ {
+        json.Unmarshal(text, &val)
+    }
+    b.SetBytes(int64(len(text)))
+}
+
+func BenchmarkEncJSONMap(b *testing.B) {
+    var val map[string]interface{}
+
+    for i := 0; i < b.N; i++ {
+        json.Unmarshal([]byte(jsonText), &val)
+    }
+    b.SetBytes(int64(len(jsonText)))
+}
+
+func BenchmarkEncJSONMedium(b *testing.B) {
+    var val []interface{}
+
+    text, _ := ioutil.ReadFile("./medium.json")
+    for i := 0; i < b.N; i++ {
+        json.Unmarshal(text, &val)
+    }
+    b.SetBytes(int64(len(text)))
+}
+
+func BenchmarkEncJSONLarge(b *testing.B) {
+    var val []interface{}
+
+    text, _ := ioutil.ReadFile("./large.json")
+    for i := 0; i < b.N; i++ {
+        json.Unmarshal(text, &val)
+    }
+    b.SetBytes(int64(len(text)))
 }

@@ -39,8 +39,8 @@ func parseExpr(text string) parsec.ParsecNode {
 	return n
 }
 
-func parseJson(text string) parsec.ParsecNode {
-	n := eg.JsonParse([]byte(text))
+func parseJSON(text string) parsec.ParsecNode {
+	n := eg.JSONParse([]byte(text))
 	return n
 }
 

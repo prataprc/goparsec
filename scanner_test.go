@@ -32,7 +32,7 @@ func TestMatch(t *testing.T) {
 	}
 	expcur := 6
 	if s.GetCursor() != expcur {
-		t.Fatalf("expected cursor position %s, got %s", expcur, s.GetCursor())
+		t.Fatalf("expected cursor position %v, got %v", expcur, s.GetCursor())
 	}
 }
 
@@ -46,7 +46,7 @@ func TestSkipWS(t *testing.T) {
 	}
 	expcur := 8
 	if s.GetCursor() != expcur {
-		t.Fatalf("expected cursor position %s, got %s", expcur, s.GetCursor())
+		t.Fatalf("expected cursor position %v, got %v", expcur, s.GetCursor())
 	}
 }
 

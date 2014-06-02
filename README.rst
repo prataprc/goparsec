@@ -105,13 +105,17 @@ buffer. Create a new scanner instance,
 the scanner library supplies method receivers like `Match()`, `SkipWS()` and
 `Endof()`. refer to scanner.go for more information on each of these methods.
 
-Check out this example program that uses `parsec` tool to do arithmetic
-expression evaluation for integers,
-https://github.com/prataprc/golib/blob/master/parsec/examples/expr.go.
+**Examples**
+
+- example/expr.go, implements a parsec grammer to parse arithmetic expressions.
+- example/json.go, implements a parsec grammer to parse JSON document.
 
 .. code-block:: bash
 
     > cd examples/
-    > go run expr.go eg.expr
+    > go test -test.bench=. -test.benchmem=true
+
+    # benchmark parsing JSON docs and compare them with encoding/json.
+    > go test -test.bench=JSON -test.benchmem=true
 
 to run the example program.

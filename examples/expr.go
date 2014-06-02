@@ -7,8 +7,8 @@
 //  either express or implied. See the License for the specific language governing permissions
 //  and limitations under the License.
 
-// Examples provide an example parser to parse basic arithmetic expression
-// based on the following rule.
+// Package examples provide an example parser to parse basic arithmetic
+// expression based on the following rule.
 //
 //     expr  -> sum
 //     prod  -> value (mulop value)*

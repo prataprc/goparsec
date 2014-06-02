@@ -26,24 +26,30 @@ func TestExpr(t *testing.T) {
 }
 
 func BenchmarkExpr1Op(b *testing.B) {
+	text := []byte(`19 + 10`)
 	for i := 0; i < b.N; i++ {
-		s := parsec.NewScanner([]byte(`19 + 10`))
+		s := parsec.NewScanner(text)
 		Expr(s)
 	}
+	b.SetBytes(int64(len(text)))
 }
 
 func BenchmarkExpr2Op(b *testing.B) {
+	text := []byte(`19 + 10 * 20`)
 	for i := 0; i < b.N; i++ {
-		s := parsec.NewScanner([]byte(`19 + 10 * 20`))
+		s := parsec.NewScanner(text)
 		Expr(s)
 	}
+	b.SetBytes(int64(len(text)))
 }
 
 func BenchmarkExpr3Op(b *testing.B) {
+	text := []byte(`19 + 10 * 20 / 9`)
 	for i := 0; i < b.N; i++ {
-		s := parsec.NewScanner([]byte(`19 + 10 * 20 / 9`))
+		s := parsec.NewScanner(text)
 		Expr(s)
 	}
+	b.SetBytes(int64(len(text)))
 }
 
 func BenchmarkExpr(b *testing.B) {
@@ -51,4 +57,5 @@ func BenchmarkExpr(b *testing.B) {
 		s := parsec.NewScanner([]byte(exprText))
 		Expr(s)
 	}
+	b.SetBytes(int64(len(exprText)))
 }
