@@ -12,52 +12,52 @@
 package examples
 
 import (
-    "github.com/prataprc/goparsec"
-    "testing"
+	"github.com/prataprc/goparsec"
+	"testing"
 )
 
 var exprText = `4 + 123 + 23 + 67 + 89 +
 87 * 78 / 67 - 98 - 199`
 
 func TestExpr(t *testing.T) {
-    s := parsec.NewScanner([]byte(exprText))
-    v, s := Expr(s)
-    if v.(int) != 110 {
-        t.Fatalf("Mismatch value %v\n", v)
-    }
+	s := parsec.NewScanner([]byte(exprText))
+	v, s := Expr(s)
+	if v.(int) != 110 {
+		t.Fatalf("Mismatch value %v\n", v)
+	}
 }
 
 func BenchmarkExpr1Op(b *testing.B) {
-    text := []byte(`19 + 10`)
-    for i := 0; i < b.N; i++ {
-        s := parsec.NewScanner(text)
-        Expr(s)
-    }
-    b.SetBytes(int64(len(text)))
+	text := []byte(`19 + 10`)
+	for i := 0; i < b.N; i++ {
+		s := parsec.NewScanner(text)
+		Expr(s)
+	}
+	b.SetBytes(int64(len(text)))
 }
 
 func BenchmarkExpr2Op(b *testing.B) {
-    text := []byte(`19 + 10 * 20`)
-    for i := 0; i < b.N; i++ {
-        s := parsec.NewScanner(text)
-        Expr(s)
-    }
-    b.SetBytes(int64(len(text)))
+	text := []byte(`19 + 10 * 20`)
+	for i := 0; i < b.N; i++ {
+		s := parsec.NewScanner(text)
+		Expr(s)
+	}
+	b.SetBytes(int64(len(text)))
 }
 
 func BenchmarkExpr3Op(b *testing.B) {
-    text := []byte(`19 + 10 * 20 / 9`)
-    for i := 0; i < b.N; i++ {
-        s := parsec.NewScanner(text)
-        Expr(s)
-    }
-    b.SetBytes(int64(len(text)))
+	text := []byte(`19 + 10 * 20 / 9`)
+	for i := 0; i < b.N; i++ {
+		s := parsec.NewScanner(text)
+		Expr(s)
+	}
+	b.SetBytes(int64(len(text)))
 }
 
 func BenchmarkExpr(b *testing.B) {
-    for i := 0; i < b.N; i++ {
-        s := parsec.NewScanner([]byte(exprText))
-        Expr(s)
-    }
-    b.SetBytes(int64(len(exprText)))
+	for i := 0; i < b.N; i++ {
+		s := parsec.NewScanner([]byte(exprText))
+		Expr(s)
+	}
+	b.SetBytes(int64(len(exprText)))
 }
