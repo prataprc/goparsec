@@ -107,8 +107,8 @@ the scanner library supplies method receivers like `Match()`, `SkipWS()` and
 
 **Examples**
 
-- example/expr.go, implements a parsec grammer to parse arithmetic expressions.
-- example/json.go, implements a parsec grammer to parse JSON document.
+- lib/expr.go, implements a parsec grammer to parse arithmetic expressions.
+- lib/json.go, implements a parsec grammer to parse JSON document.
 
 .. code-block:: bash
 
