@@ -9,8 +9,8 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-// Package examples provide an example parser to parse JSON string.
-package examples
+// Package provide a parser to parse JSON string.
+package lib
 
 import (
 	"github.com/prataprc/goparsec"
