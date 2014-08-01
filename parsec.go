@@ -27,6 +27,10 @@
 // to construct a ParsecNode.
 package parsec
 
+import (
+	"fmt"
+)
+
 // ParsecNode type defines a node in the AST
 type ParsecNode interface{}
 
@@ -136,10 +140,11 @@ func OrdChoice(callb Nodify, parsers ...Parser) Parser {
 func Kleene(callb Nodify, parsers ...Parser) Parser {
 	var opScan, sepScan Parser
 	opScan = parsers[0]
-	if len(parsers) == 2 {
+	l := len(parsers)
+	if l == 2 {
 		sepScan = parsers[1]
-	} else {
-		panic("Kleene parser does not accept more than 2 parsers")
+	} else if l > 2 {
+		panic(fmt.Errorf("Kleene parser doesn't accept %v parsers", l))
 	}
 	return func(s Scanner) (ParsecNode, Scanner) {
 		var n ParsecNode
