@@ -2,10 +2,8 @@
 
 package parsec
 
-import (
-	"reflect"
-	"testing"
-)
+import "reflect"
+import "testing"
 
 func TestClone(t *testing.T) {
 	text := []byte(`example text`)

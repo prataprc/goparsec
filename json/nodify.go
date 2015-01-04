@@ -1,3 +1,5 @@
+//  Copyright (c) 2013 Couchbase, Inc.
+
 package json
 
 import "github.com/prataprc/goparsec"
