@@ -13,7 +13,7 @@
 //     value -> num
 //           | "(" expr ")"
 
-package lib
+package expr
 
 import "strconv"
 import "github.com/prataprc/goparsec"

@@ -1,4 +1,6 @@
-package lib
+//  Copyright (c) 2013 Couchbase, Inc.
+
+package expr
 
 import "github.com/prataprc/goparsec"
 
