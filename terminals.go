@@ -6,12 +6,31 @@
 
 package parsec
 
+import "fmt"
 import "strings"
+import "strconv"
+import "unicode"
+import "unicode/utf8"
+import "unicode/utf16"
+
+var _ = fmt.Sprintf("dummy")
 
 // String returns a parser function to match a double quoted
 // string in the input stream.
 func String() Parser {
-	return Token(`"(\.|[^"])*"`, "STRING")
+	return func(s Scanner) (ParsecNode, Scanner) {
+		s.SkipWS()
+		scanner := s.(*SimpleScanner)
+		if scanner.buf[scanner.cursor] == '"' {
+			str, readn := scanString(scanner.buf[scanner.cursor:])
+			if str == nil || len(str) == 0 {
+				return nil, scanner
+			}
+			scanner.cursor += readn
+			return string(str), scanner
+		}
+		return nil, scanner
+	}
 }
 
 // Char returns a parser function to match a single character
@@ -20,10 +39,10 @@ func Char() Parser {
 	return Token(`'.'`, "CHAR")
 }
 
-// Int returns a parser function to match an integer literal
+// Float returns a parser function to match a float literal
 // in the input stream.
-func Int() Parser {
-	return Token(`-?[0-9]+`, "INT")
+func Float() Parser {
+	return Token(`-?[0-9]*\.[0-9]+`, "FLOAT")
 }
 
 // Hex returns a parser function to match a hexadecimal
@@ -35,13 +54,13 @@ func Hex() Parser {
 // Oct returns a parser function to match an octal number
 // literal in the input stream.
 func Oct() Parser {
-	return Token(`0[0-8]+`, "OCT")
+	return Token(`0[0-7]+`, "OCT")
 }
 
-// Float returns a parser function to match a float literal
+// Int returns a parser function to match an integer literal
 // in the input stream.
-func Float() Parser {
-	return Token(`-?[0-9]*\.[0-9]+`, "FLOAT")
+func Int() Parser {
+	return Token(`-?[0-9]+`, "INT")
 }
 
 // Ident returns a parser function to match an identifier
@@ -108,4 +127,113 @@ func End(s Scanner) (ParsecNode, Scanner) {
 // scanner output.
 func NoEnd(s Scanner) (ParsecNode, Scanner) {
 	return !s.Endof(), s
+}
+
+var escapeCode = [256]byte{ // TODO: size can be optimized
+	'"':  '"',
+	'\\': '\\',
+	'/':  '/',
+	'\'': '\'',
+	'b':  '\b',
+	'f':  '\f',
+	'n':  '\n',
+	'r':  '\r',
+	't':  '\t',
+}
+
+func scanString(txt []byte) (tok []byte, readn int) {
+	if len(txt) < 2 {
+		return nil, 0
+	}
+
+	e := 1
+	for txt[e] != '"' {
+		c := txt[e]
+		if c == '\\' || c == '"' || c < ' ' {
+			break
+		}
+		if c < utf8.RuneSelf {
+			e++
+			continue
+		}
+		r, size := utf8.DecodeRune(txt[e:])
+		if r == utf8.RuneError && size == 1 {
+			return nil, 0
+		}
+		e += size
+	}
+
+	if txt[e] == '"' { // done we have nothing to unquote
+		return txt[:e+1], e + 1
+	}
+
+	out := make([]byte, len(txt)+2*utf8.UTFMax)
+	oute := copy(out, txt[:e]) // copy so far
+
+loop:
+	for e < len(txt) {
+		switch c := txt[e]; {
+		case c == '"':
+			out[oute] = c
+			e++
+			break loop
+
+		case c == '\\':
+			if txt[e+1] == 'u' {
+				r := getu4(txt[e:])
+				if r < 0 { // invalid
+					return nil, 0
+				}
+				e += 6
+				if utf16.IsSurrogate(r) {
+					nextr := getu4(txt[e:])
+					dec := utf16.DecodeRune(r, nextr)
+					if dec != unicode.ReplacementChar { // A valid pair consume
+						oute += utf8.EncodeRune(out[oute:], dec)
+						e += 6
+						break loop
+					}
+					// Invalid surrogate; fall back to replacement rune.
+					r = unicode.ReplacementChar
+				}
+				oute += utf8.EncodeRune(out[oute:], r)
+
+			} else { // escaped with " \ / ' b f n r t
+				out[oute] = escapeCode[txt[e+1]]
+				e += 2
+				oute++
+			}
+
+		case c < ' ': // control character is invalid
+			return nil, 0
+
+		case c < utf8.RuneSelf: // ASCII
+			out[oute] = c
+			oute++
+			e++
+
+		default: // coerce to well-formed UTF-8
+			r, size := utf8.DecodeRune(txt[e:])
+			e += size
+			oute += utf8.EncodeRune(out[oute:], r)
+		}
+	}
+
+	if out[oute] == '"' {
+		return out[:oute+1], e
+	}
+	return nil, 0
+}
+
+// getu4 decodes \uXXXX from the beginning of s, returning the hex value,
+// or it returns -1.
+func getu4(s []byte) rune {
+	if len(s) < 6 || s[0] != '\\' || s[1] != 'u' {
+		return -1
+	}
+	r, err := strconv.ParseUint(string(s[2:6]), 16, 64)
+	if err != nil {
+		return -1
+	}
+	return rune(r)
 }
