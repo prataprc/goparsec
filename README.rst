@@ -155,7 +155,9 @@ clone the repository run the benchmark suite
 
 .. code-block:: bash
 
-    $ cd examples/
+    $ cd expr/
+    $ go test -test.bench=. -test.benchmem=true
+    $ cd json/
     $ go test -test.bench=. -test.benchmem=true
 
 to run the example program,
