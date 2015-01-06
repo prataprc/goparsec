@@ -155,14 +155,15 @@ clone the repository run the benchmark suite
 
 .. code-block:: bash
 
-    > cd examples/
-    > go test -test.bench=. -test.benchmem=true
+    $ cd examples/
+    $ go test -test.bench=. -test.benchmem=true
 
 to run the example program,
 
 .. code-block:: bash
+
     # to parse expression
-    go run tools/parsec/parsec.go -expr "10 + 29"
+    $ go run tools/parsec/parsec.go -expr "10 + 29"
 
     # to parse JSON string
-    go run tools/parsec/parsec.go -json '{ "key1" : [10, "hello", true, null, false] }'
+    $ go run tools/parsec/parsec.go -json '{ "key1" : [10, "hello", true, null, false] }'
