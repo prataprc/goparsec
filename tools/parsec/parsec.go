@@ -8,41 +8,41 @@ import "io/ioutil"
 import "os"
 
 import "github.com/prataprc/goparsec"
-import eg "github.com/prataprc/goparsec/examples"
+import "github.com/prataprc/goparsec/expr"
+import "github.com/prataprc/goparsec/json"
 
 var options struct {
 	expr string
 	json string
 }
 
-func arguments() {
+func argParse() {
 	flag.StringVar(&options.expr, "expr", "",
 		"Specify input file or arithmetic expression string")
-	flag.StringVar(&options.expr, "json", "",
+	flag.StringVar(&options.json, "json", "",
 		"Specify input file or json string")
 	flag.Parse()
 }
 
 func main() {
-	var n parsec.ParsecNode
-
+	argParse()
 	if options.expr != "" {
-		n = parseExpr(getText(options.expr))
+		doExpr(getText(options.expr))
 	} else if options.json != "" {
-		n = parseExpr(getText(options.expr))
+		doJSON(getText(options.json))
 	}
-	fmt.Println(n)
 }
 
-func parseExpr(text string) parsec.ParsecNode {
+func doExpr(text string) {
 	s := parsec.NewScanner([]byte(text))
-	n, _ := eg.Expr(s)
-	return n
+	v, _ := expr.Y(s)
+	fmt.Println(v)
 }
 
-func parseJSON(text string) parsec.ParsecNode {
-	n := eg.JSONParse([]byte(text))
-	return n
+func doJSON(text string) {
+	s := json.NewJSONScanner([]byte(text))
+	v, _ := json.Y(s)
+	fmt.Println(v)
 }
 
 func getText(filename string) string {
