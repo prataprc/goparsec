@@ -21,7 +21,7 @@ func String() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		s.SkipWS()
 		scanner := s.(*SimpleScanner)
-		if scanner.buf[scanner.cursor] == '"' {
+		if !scanner.Endof() && scanner.buf[scanner.cursor] == '"' {
 			str, readn := scanString(scanner.buf[scanner.cursor:])
 			if str == nil || len(str) == 0 {
 				return nil, scanner
