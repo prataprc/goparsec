@@ -18,8 +18,9 @@ package expr
 import "strconv"
 import "github.com/prataprc/goparsec"
 
-// Circular rats
-var prod, sum, value, Y parsec.Parser
+// Y is root Parser, usually called as `s` in CFG theory.
+var Y parsec.Parser
+var prod, sum, value parsec.Parser // circular rats
 
 // Terminal rats
 var openparan = parsec.Token(`\(`, "OPENPARAN")

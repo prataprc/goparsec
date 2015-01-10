@@ -1,6 +1,6 @@
 //  Copyright (c) 2013 Couchbase, Inc.
 
-// Package provide a parser to parse JSON string.
+// Package json provide a parser to parse JSON string.
 package json
 
 import "strconv"
@@ -10,14 +10,24 @@ import "unicode/utf16"
 
 import "github.com/prataprc/goparsec"
 
+// Null is alias for string type denoting JSON `null`
 type Null string
+
+// True is alias for string type denoting JSON `true`
 type True string
+
+// False is alias for string type denoting JSON `null`
 type False string
+
+// Num is alias for string type denoting JSON `null`
 type Num string
+
+// String is alias for string type denoting JSON `null`
 type String string
 
-// Circular rats
-var value, Y parsec.Parser
+// Y is root Parser, usually called as `s` in CFG theory.
+var Y parsec.Parser
+var value parsec.Parser // circular rats
 
 // NonTerminal rats
 // values -> value | values "," value
@@ -158,11 +168,15 @@ func init() {
 	digitCheck['.'] = 1
 }
 
+// JSONScanner implements parsec.Scanner{} interface used
+// as custom scanner for parsing JSON string.
 type JSONScanner struct {
 	buf    []byte // input buffer
 	cursor int    // cursor within input buffer
 }
 
+// NewJSONScanner return a new Scanner{} interface for parsing
+// JSON string.
 func NewJSONScanner(text []byte) *JSONScanner {
 	return &JSONScanner{
 		buf:    text,

@@ -147,7 +147,7 @@ func Kleene(callb Nodify, parsers ...interface{}) Parser {
 	case 2:
 		opScan, sepScan = parsers[0], parsers[1]
 	default:
-		panic(fmt.Errorf("Kleene parser doesn't accept %v parsers", l))
+		panic(fmt.Errorf("kleene parser doesn't accept %v parsers", l))
 	}
 	return func(s Scanner) (ParsecNode, Scanner) {
 		var n ParsecNode
@@ -196,7 +196,7 @@ func Many(callb Nodify, parsers ...interface{}) Parser {
 	case 2:
 		opScan, sepScan = parsers[0], parsers[1]
 	default:
-		panic(fmt.Errorf("Many parser doesn't accept %v parsers", l))
+		panic(fmt.Errorf("many parser doesn't accept %v parsers", l))
 	}
 	return func(s Scanner) (ParsecNode, Scanner) {
 		var n ParsecNode
@@ -245,7 +245,6 @@ func doParse(parser interface{}, s Scanner) (ParsecNode, Scanner) {
 	default:
 		panic(fmt.Errorf("type of parser %T not supported", parser))
 	}
-	return nil, nil
 }
 
 func docallback(callb Nodify, ns []ParsecNode) ParsecNode {
