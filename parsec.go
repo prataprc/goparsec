@@ -245,6 +245,7 @@ func doParse(parser interface{}, s Scanner) (ParsecNode, Scanner) {
 	default:
 		panic(fmt.Errorf("type of parser %T not supported", parser))
 	}
+	return nil, nil
 }
 
 func docallback(callb Nodify, ns []ParsecNode) ParsecNode {
