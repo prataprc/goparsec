@@ -16,7 +16,11 @@
 package expr
 
 import "strconv"
+import "fmt"
+
 import "github.com/prataprc/goparsec"
+
+var _ = fmt.Sprintf("dummp print")
 
 // Y is root Parser, usually called as `s` in CFG theory.
 var Y parsec.Parser
@@ -32,10 +36,10 @@ var divop = parsec.Token(`/`, "DIV")
 
 // NonTerminal rats
 // addop -> "+" |  "-"
-var sumOp = parsec.OrdChoice(one2one, addop, subop)
+var sumOp = parsec.OrdTokens([]string{`\+`, `-`}, []string{"ADD", "SUB"})
 
 // mulop -> "*" |  "/"
-var prodOp = parsec.OrdChoice(one2one, multop, divop)
+var prodOp = parsec.OrdTokens([]string{`\*`, `/`}, []string{"MULT", "DIV"})
 
 // value -> "(" expr ")"
 var groupExpr = parsec.And(exprNode, openparan, &sum, closeparan)

@@ -203,7 +203,9 @@ func (s *JSONScanner) Match(pattern string) ([]byte, parsec.Scanner) {
 }
 
 // SubmatchAll method receiver in Scanner interface.
-func (s *JSONScanner) SubmatchAll(pattern string) ([][]byte, parsec.Scanner) {
+func (s *JSONScanner) SubmatchAll(
+	pattern string) (map[string][]byte, parsec.Scanner) {
+
 	return nil, nil
 }
 

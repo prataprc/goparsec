@@ -6,12 +6,12 @@
 //      And OrdChoice Kleene Many Maybe
 //
 // Parser combinators can be used to construct higher-order
-// parsers using basic parser function. All parser functions are
-// expected to follow the `Parser` type signature, accepting a
-// `Scanner` interface and returning a `ParsecNode` and a new
+// parsers using basic parser function. All parser functions
+// are expected to follow the `Parser` type signature, accepting
+// a `Scanner` interface and returning a `ParsecNode` and a new
 // scanner. If a parser fails to match the input string according
-// to its rules, then it must return nil for ParsecNode, and a new
-// Scanner.
+// to its rules, then it must return nil for ParsecNode, and a
+// new Scanner.
 //
 // ParsecNode can either be a Terminal structure or NonTerminal
 // structure or a list of Terminal/NonTerminal structure. The AST
@@ -47,34 +47,6 @@ type NonTerminal struct {
 	Name     string       // contains terminal's token type
 	Value    string       // value of the terminal
 	Children []ParsecNode // list of children to this node.
-}
-
-// Scanner interface supplies necessary methods to match the
-// input stream.
-type Scanner interface {
-	// Clone will return new clone of the underlying scanner structure.
-	// This will be used by combinators to _backtrack_.
-	Clone() Scanner
-
-	// GetCursor gets the current cursor position inside input text.
-	GetCursor() int
-
-	// Match the input stream with `pattern` and return
-	// matching string after advancing the cursor.
-	Match(pattern string) ([]byte, Scanner)
-
-	// SubmatchAll the input stream with a choice of `patterns`
-	// and return matching string and submatches, after
-	// advancing the cursor.
-	SubmatchAll(pattern string) ([][]byte, Scanner)
-
-	// SkipWs skips white space characters in the input stream.
-	// Return skipped whitespaces as byte-slice and advance the cursor.
-	SkipWS() ([]byte, Scanner)
-
-	// Endof detects whether end-of-file is reached in the input
-	// stream and return a boolean indicating the same.
-	Endof() bool
 }
 
 // And combinator accepts a list of `Parser`, or reference to a
@@ -245,7 +217,6 @@ func doParse(parser interface{}, s Scanner) (ParsecNode, Scanner) {
 	default:
 		panic(fmt.Errorf("type of parser %T not supported", parser))
 	}
-	return nil, nil
 }
 
 func docallback(callb Nodify, ns []ParsecNode) ParsecNode {

@@ -4,6 +4,9 @@ package parsec
 
 import "reflect"
 import "testing"
+import "fmt"
+
+var _ = fmt.Sprintf("dummy print")
 
 func TestClone(t *testing.T) {
 	text := []byte(`example text`)
@@ -24,6 +27,26 @@ func TestMatch(t *testing.T) {
 	expcur := 6
 	if s.GetCursor() != expcur {
 		t.Fatalf("expected cursor position %v, got %v", expcur, s.GetCursor())
+	}
+}
+
+func TestSubmatchAll(t *testing.T) {
+	text := []byte(`alphabetaexample text`)
+	s := NewScanner(text)
+	pattern := `^(?P<X>alpha)|(?P<Y>beta)(?P<Z>example) text`
+	m, s := s.SubmatchAll(pattern)
+	if len(m) != 1 {
+		t.Fatalf("match failed in len %v\n", m)
+	} else if str := string(m["X"]); str != "alpha" {
+		t.Fatalf("expected %q got %q\n", "alpha", str)
+	}
+	m, s = s.SubmatchAll(pattern)
+	if len(m) != 2 {
+		t.Fatalf("match failed in len %v\n", m)
+	} else if str := string(m["Y"]); str != "beta" {
+		t.Fatalf("expected %q got %q\n", "beta", str)
+	} else if str := string(m["Z"]); str != "example" {
+		t.Fatalf("expected %q got %q\n", "example", str)
 	}
 }
 

@@ -93,21 +93,24 @@ func Token(pattern string, name string) Parser {
 // OrdTokens to parse a single token based on one of the
 // specified `patterns`.
 func OrdTokens(patterns []string, names []string) Parser {
+	var group string
 	groups := make([]string, 0, len(patterns))
-	for _, pattern := range patterns {
-		groups = append(groups, "(^"+pattern+")")
+	for i, pattern := range patterns {
+		if names[i] == "" {
+			group = "^(" + pattern + ")"
+		} else {
+			group = "^(?P<" + names[i] + ">" + pattern + ")"
+		}
+		groups = append(groups, group)
 	}
 	ordPattern := strings.Join(groups, "|")
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
 		news.SkipWS()
-		if toks, _ := news.SubmatchAll(ordPattern); toks != nil {
-			for i, tok := range toks[1:] {
-				if len(tok) == 0 {
-					continue
-				}
+		if captures, _ := news.SubmatchAll(ordPattern); captures != nil {
+			for name, tok := range captures {
 				t := Terminal{
-					Name:     names[i],
+					Name:     name,
 					Value:    string(tok),
 					Position: news.GetCursor(),
 				}

@@ -3,6 +3,37 @@
 package parsec
 
 import "regexp"
+import "fmt"
+
+var _ = fmt.Sprintf("dummy print")
+
+// Scanner interface supplies necessary methods to match the
+// input stream.
+type Scanner interface {
+	// Clone will return new clone of the underlying scanner structure.
+	// This will be used by combinators to _backtrack_.
+	Clone() Scanner
+
+	// GetCursor gets the current cursor position inside input text.
+	GetCursor() int
+
+	// Match the input stream with `pattern` and return
+	// matching string after advancing the cursor.
+	Match(pattern string) ([]byte, Scanner)
+
+	// SubmatchAll the input stream with a choice of `patterns`
+	// and return matching string and submatches, after
+	// advancing the cursor.
+	SubmatchAll(pattern string) (map[string][]byte, Scanner)
+
+	// SkipWs skips white space characters in the input stream.
+	// Return skipped whitespaces as byte-slice and advance the cursor.
+	SkipWS() ([]byte, Scanner)
+
+	// Endof detects whether end-of-file is reached in the input
+	// stream and return a boolean indicating the same.
+	Endof() bool
+}
 
 // SimpleScanner implements Scanner interface based on
 // golang's regexp module.
@@ -41,8 +72,7 @@ func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	var err error
 	regc := s.patterns[pattern]
 	if regc == nil {
-		regc, err = regexp.Compile(pattern)
-		if err != nil {
+		if regc, err = regexp.Compile(pattern); err != nil {
 			panic(err)
 		}
 		s.patterns[pattern] = regc
@@ -55,20 +85,29 @@ func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 }
 
 // SubmatchAll method receiver in Scanner{} interface.
-func (s *SimpleScanner) SubmatchAll(pattern string) ([][]byte, Scanner) {
+func (s *SimpleScanner) SubmatchAll(
+	pattern string) (map[string][]byte, Scanner) {
+
 	var err error
 	regc := s.patterns[pattern]
 	if regc == nil {
-		regc, err = regexp.Compile(pattern)
-		if err != nil {
-			panic(err.Error())
+		if regc, err = regexp.Compile(pattern); err != nil {
+			panic(err)
 		}
 		s.patterns[pattern] = regc
 	}
-	toks := regc.FindSubmatch(s.buf[s.cursor:])
-	if toks != nil {
-		s.cursor += len(toks[0])
-		return toks, s
+	matches := regc.FindSubmatch(s.buf[s.cursor:])
+	if matches != nil {
+		captures := make(map[string][]byte)
+		names := regc.SubexpNames()
+		for i, name := range names {
+			if i == 0 || name == "" || matches[i] == nil {
+				continue
+			}
+			captures[name] = matches[i]
+		}
+		s.cursor += len(matches[0])
+		return captures, s
 	}
 	return nil, s
 }
