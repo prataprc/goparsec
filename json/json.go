@@ -5,10 +5,13 @@ package json
 
 import "strconv"
 import "unicode"
+import "fmt"
 import "unicode/utf8"
 import "unicode/utf16"
 
 import "github.com/prataprc/goparsec"
+
+var _ = fmt.Sprintf("dummy print")
 
 // Null is alias for string type denoting JSON `null`
 type Null string
@@ -76,7 +79,7 @@ func valueNode(ns []parsec.ParsecNode) parsec.ParsecNode {
 			return String(n.Value)
 		}
 
-	case []interface{}:
+	case []parsec.ParsecNode:
 		return n
 
 	case map[string]interface{}:
@@ -93,12 +96,7 @@ func valuesNode(ns []parsec.ParsecNode) parsec.ParsecNode {
 }
 
 func arrayNode(ns []parsec.ParsecNode) parsec.ParsecNode {
-	values := ns[1].([]parsec.ParsecNode)
-	arr := make([]interface{}, len(values))
-	for i, n := range values {
-		arr[i] = n
-	}
-	return arr
+	return ns[1]
 }
 
 func propertiesNode(ns []parsec.ParsecNode) parsec.ParsecNode {
@@ -224,115 +222,37 @@ func (s *JSONScanner) Endof() bool {
 
 func colon() parsec.Parser {
 	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
-		sp := s.(*JSONScanner)
-		// scan for whitespace
-		_, l := scanWS(sp.buf[sp.cursor:])
-		sp.cursor = sp.cursor + l
-		if sp.buf[sp.cursor] == ':' {
-			t := &parsec.Terminal{
-				Name:     "COLON",
-				Value:    ":",
-				Position: sp.cursor,
-			}
-			sp.cursor++
-			return t, sp
-		}
-		return nil, sp
+		return matchChar("COLON", ':', s)
 	}
 }
 
 func comma() parsec.Parser {
 	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
-		sp := s.(*JSONScanner)
-		// scan for whitespace
-		_, l := scanWS(sp.buf[sp.cursor:])
-		sp.cursor = sp.cursor + l
-		if sp.buf[sp.cursor] == ',' {
-			t := &parsec.Terminal{
-				Name:     "COMMA",
-				Value:    ",",
-				Position: sp.cursor,
-			}
-			sp.cursor++
-			return t, sp
-		}
-		return nil, sp
+		return matchChar("COMMA", ',', s)
 	}
 }
 
 func openSqrt() parsec.Parser {
 	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
-		sp := s.(*JSONScanner)
-		// scan for whitespace
-		_, l := scanWS(sp.buf[sp.cursor:])
-		sp.cursor = sp.cursor + l
-		if sp.buf[sp.cursor] == '[' {
-			t := &parsec.Terminal{
-				Name:     "OPENSQR",
-				Value:    "[",
-				Position: sp.cursor,
-			}
-			sp.cursor++
-			return t, sp
-		}
-		return nil, sp
+		return matchChar("OPENSQR", '[', s)
 	}
 }
 
 func closeSqrt() parsec.Parser {
 	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
-		sp := s.(*JSONScanner)
-		// scan for whitespace
-		_, l := scanWS(sp.buf[sp.cursor:])
-		sp.cursor = sp.cursor + l
-		if sp.buf[sp.cursor] == ']' {
-			t := &parsec.Terminal{
-				Name:     "CLOSESQR",
-				Value:    "]",
-				Position: sp.cursor,
-			}
-			sp.cursor++
-			return t, sp
-		}
-		return nil, sp
+		return matchChar("CLOSESQR", ']', s)
 	}
 }
 
 func openBrace() parsec.Parser {
 	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
-		sp := s.(*JSONScanner)
-		// scan for whitespace
-		_, l := scanWS(sp.buf[sp.cursor:])
-		sp.cursor = sp.cursor + l
-		if sp.buf[sp.cursor] == '{' {
-			t := &parsec.Terminal{
-				Name:     "OPENBRACE",
-				Value:    "{",
-				Position: sp.cursor,
-			}
-			sp.cursor++
-			return t, sp
-		}
-		return nil, sp
+		return matchChar("OPENBRACE", '{', s)
 	}
 }
 
 func closeBrace() parsec.Parser {
 	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
-		sp := s.(*JSONScanner)
-		// scan for whitespace
-		_, l := scanWS(sp.buf[sp.cursor:])
-		sp.cursor = sp.cursor + l
-		if sp.buf[sp.cursor] == '}' {
-			t := &parsec.Terminal{
-				Name:     "CLOSEBRACE",
-				Value:    "}",
-				Position: sp.cursor,
-			}
-			sp.cursor++
-			return t, sp
-		}
-		return nil, sp
+		return matchChar("CLOSEBRACE", '}', s)
 	}
 }
 
@@ -348,7 +268,7 @@ func sTring() parsec.Parser {
 		}
 		// scan for string
 		if txt[0] == '"' {
-			tok := scanString(txt)
+			tok, ln := scanString(txt)
 			if tok == nil {
 				return nil, sp
 			}
@@ -357,7 +277,7 @@ func sTring() parsec.Parser {
 				Value:    string(tok[1 : len(tok)-1]),
 				Position: sp.cursor,
 			}
-			sp.cursor += len(tok)
+			sp.cursor += ln
 			return t, sp
 		}
 		return nil, sp
@@ -412,7 +332,7 @@ func tokenTerm(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
 		return t, sp
 
 	case '"':
-		tok := scanString(txt)
+		tok, ln := scanString(txt)
 		if tok == nil {
 			return nil, sp
 		}
@@ -421,7 +341,7 @@ func tokenTerm(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
 			Value:    string(tok[1 : len(tok)-1]),
 			Position: sp.cursor,
 		}
-		sp.cursor += len(tok)
+		sp.cursor += ln
 		return t, sp
 	}
 	return nil, sp
@@ -440,9 +360,9 @@ func scanNum(txt []byte, cursor int) *parsec.Terminal {
 	}
 }
 
-func scanString(txt []byte) []byte {
+func scanString(txt []byte) ([]byte, int) {
 	if len(txt) < 2 {
-		return nil
+		return nil, 0
 	}
 
 	e := 1
@@ -457,13 +377,13 @@ func scanString(txt []byte) []byte {
 		}
 		r, size := utf8.DecodeRune(txt[e:])
 		if r == utf8.RuneError && size == 1 {
-			return nil
+			return nil, 0
 		}
 		e += size
 	}
 
 	if txt[e] == '"' { // done we have nothing to unquote
-		return txt[:e+1]
+		return txt[:e+1], e + 1
 	}
 
 	out := make([]byte, len(txt)+2*utf8.UTFMax)
@@ -481,7 +401,7 @@ loop:
 			if txt[e+1] == 'u' {
 				r := getu4(txt[e:])
 				if r < 0 { // invalid
-					return nil
+					return nil, 0
 				}
 				e += 6
 				if utf16.IsSurrogate(r) {
@@ -504,7 +424,7 @@ loop:
 			}
 
 		case c < ' ': // control character is invalid
-			return nil
+			return nil, 0
 
 		case c < utf8.RuneSelf: // ASCII
 			out[oute] = c
@@ -519,9 +439,9 @@ loop:
 	}
 
 	if out[oute] == '"' {
-		return out[:oute+1]
+		return out[:oute+1], e
 	}
-	return nil
+	return nil, 0
 }
 
 func scanWS(txt []byte) ([]byte, int) {
@@ -567,11 +487,12 @@ func nativeValue(m interface{}) interface{} {
 	case String:
 		return string(v)
 
-	case []interface{}:
+	case []parsec.ParsecNode:
+		nv := make([]interface{}, len(v))
 		for i, n := range v {
-			v[i] = nativeValue(n)
+			nv[i] = nativeValue(n)
 		}
-		return v
+		return nv
 
 	case map[string]interface{}:
 		for key, value := range v {
@@ -580,4 +501,25 @@ func nativeValue(m interface{}) interface{} {
 		return v
 	}
 	return nil
+}
+
+func matchChar(
+	name string,
+	ch byte,
+	s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
+
+	sp := s.(*JSONScanner)
+	i, ln := sp.cursor, len(sp.buf)
+	for ; i < ln; i++ {
+		if spaceCode[sp.buf[i]] != 1 { // if !unicode.IsSpace(run) {
+			break
+		}
+	}
+	sp.cursor = i
+	if i < ln && sp.buf[i] == ch {
+		t := &parsec.Terminal{Name: name, Value: string(ch), Position: i}
+		sp.cursor++
+		return t, sp
+	}
+	return nil, sp
 }
