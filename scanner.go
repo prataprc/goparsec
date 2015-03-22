@@ -35,31 +35,25 @@ type Scanner interface {
 	Endof() bool
 }
 
+// cache of compiled regular expression
+var patternCache = make(map[string]*regexp.Regexp)
+
 // SimpleScanner implements Scanner interface based on
 // golang's regexp module.
 type SimpleScanner struct {
-	buf      []byte                    // input buffer
-	cursor   int                       // cursor within input buffer
-	patterns map[string]*regexp.Regexp // cache of compiled regular expression
+	buf    []byte // input buffer
+	cursor int    // cursor within input buffer
 }
 
 // NewScanner creates and returns a reference to new instance
 // of SimpleScanner object.
 func NewScanner(text []byte) Scanner {
-	return &SimpleScanner{
-		buf:      text,
-		cursor:   0,
-		patterns: make(map[string]*regexp.Regexp),
-	}
+	return &SimpleScanner{buf: text, cursor: 0}
 }
 
 // Clone method receiver in Scanner{} interface.
 func (s *SimpleScanner) Clone() Scanner {
-	return &SimpleScanner{
-		buf:      s.buf,
-		cursor:   s.cursor,
-		patterns: s.patterns,
-	}
+	return &SimpleScanner{buf: s.buf, cursor: s.cursor}
 }
 
 // GetCursor method receiver in Scanner{} interface.
@@ -70,12 +64,12 @@ func (s *SimpleScanner) GetCursor() int {
 // Match method receiver in Scanner{} interface.
 func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	var err error
-	regc := s.patterns[pattern]
+	regc := patternCache[pattern]
 	if regc == nil {
 		if regc, err = regexp.Compile(pattern); err != nil {
 			panic(err)
 		}
-		s.patterns[pattern] = regc
+		patternCache[pattern] = regc
 	}
 	if token := regc.Find(s.buf[s.cursor:]); token != nil {
 		s.cursor += len(token)
@@ -89,12 +83,12 @@ func (s *SimpleScanner) SubmatchAll(
 	pattern string) (map[string][]byte, Scanner) {
 
 	var err error
-	regc := s.patterns[pattern]
+	regc := patternCache[pattern]
 	if regc == nil {
 		if regc, err = regexp.Compile(pattern); err != nil {
 			panic(err)
 		}
-		s.patterns[pattern] = regc
+		patternCache[pattern] = regc
 	}
 	matches := regc.FindSubmatch(s.buf[s.cursor:])
 	if matches != nil {
