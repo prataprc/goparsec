@@ -55,7 +55,11 @@ func NewScanner(text []byte) Scanner {
 
 // Clone method receiver in Scanner{} interface.
 func (s *SimpleScanner) Clone() Scanner {
-	return &SimpleScanner{buf: s.buf, cursor: s.cursor}
+	return &SimpleScanner{
+		buf:          s.buf,
+		cursor:       s.cursor,
+		patternCache: s.patternCache,
+	}
 }
 
 // GetCursor method receiver in Scanner{} interface.
@@ -66,8 +70,8 @@ func (s *SimpleScanner) GetCursor() int {
 // Match method receiver in Scanner{} interface.
 func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	var err error
-	regc := s.patternCache[pattern]
-	if regc == nil {
+	regc, ok := s.patternCache[pattern]
+	if !ok {
 		if regc, err = regexp.Compile(pattern); err != nil {
 			panic(err)
 		}
@@ -85,8 +89,8 @@ func (s *SimpleScanner) SubmatchAll(
 	pattern string) (map[string][]byte, Scanner) {
 
 	var err error
-	regc := s.patternCache[pattern]
-	if regc == nil {
+	regc, ok := s.patternCache[pattern]
+	if !ok {
 		if regc, err = regexp.Compile(pattern); err != nil {
 			panic(err)
 		}
