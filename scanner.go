@@ -35,20 +35,22 @@ type Scanner interface {
 	Endof() bool
 }
 
-// cache of compiled regular expression
-var patternCache = make(map[string]*regexp.Regexp)
-
 // SimpleScanner implements Scanner interface based on
 // golang's regexp module.
 type SimpleScanner struct {
-	buf    []byte // input buffer
-	cursor int    // cursor within input buffer
+	buf          []byte // input buffer
+	cursor       int    // cursor within input buffer
+	patternCache map[string]*regexp.Regexp
 }
 
 // NewScanner creates and returns a reference to new instance
 // of SimpleScanner object.
 func NewScanner(text []byte) Scanner {
-	return &SimpleScanner{buf: text, cursor: 0}
+	return &SimpleScanner{
+		buf:          text,
+		cursor:       0,
+		patternCache: make(map[string]*regexp.Regexp),
+	}
 }
 
 // Clone method receiver in Scanner{} interface.
@@ -64,12 +66,12 @@ func (s *SimpleScanner) GetCursor() int {
 // Match method receiver in Scanner{} interface.
 func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	var err error
-	regc := patternCache[pattern]
+	regc := s.patternCache[pattern]
 	if regc == nil {
 		if regc, err = regexp.Compile(pattern); err != nil {
 			panic(err)
 		}
-		patternCache[pattern] = regc
+		s.patternCache[pattern] = regc
 	}
 	if token := regc.Find(s.buf[s.cursor:]); token != nil {
 		s.cursor += len(token)
@@ -83,12 +85,12 @@ func (s *SimpleScanner) SubmatchAll(
 	pattern string) (map[string][]byte, Scanner) {
 
 	var err error
-	regc := patternCache[pattern]
+	regc := s.patternCache[pattern]
 	if regc == nil {
 		if regc, err = regexp.Compile(pattern); err != nil {
 			panic(err)
 		}
-		patternCache[pattern] = regc
+		s.patternCache[pattern] = regc
 	}
 	matches := regc.FindSubmatch(s.buf[s.cursor:])
 	if matches != nil {
