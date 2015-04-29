@@ -18,6 +18,9 @@ func TestStrEOF(t *testing.T) {
 	nodes := root.([]ParsecNode)
 	ref := []ParsecNode{"\"alpha\"", "\"beta\"", "\"gamma\""}
 	if !reflect.DeepEqual(nodes, ref) {
-		t.Fatal(nodes)
+		t.Fatal("did not parse correctly: ", nodes)
+		for v := range nodes {
+
+		}
 	}
 }

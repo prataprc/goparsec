@@ -3,9 +3,6 @@
 package parsec
 
 import "regexp"
-import "fmt"
-
-var _ = fmt.Sprintf("dummy print")
 
 // Scanner interface supplies necessary methods to match the
 // input stream.
@@ -21,14 +18,21 @@ type Scanner interface {
 	// matching string after advancing the cursor.
 	Match(pattern string) ([]byte, Scanner)
 
+	// Match the input stream with a simple string,
+	// rather that a pattern. It should be more efficient.
+	// Returns a bool indicating if the match was succesfull
+	// and the scanner
+	MatchString(string) (bool, Scanner)
+
 	// SubmatchAll the input stream with a choice of `patterns`
 	// and return matching string and submatches, after
 	// advancing the cursor.
 	SubmatchAll(pattern string) (map[string][]byte, Scanner)
 
-	// SkipWs skips white space characters in the input stream.
-	// Return skipped whitespaces as byte-slice and advance the cursor.
-	SkipWS() ([]byte, Scanner)
+	// Skips any occurence of the elements of the slice.
+	// Equivalent to Match(`(b[0]|b[1]|...|b[n])*`)
+	// Returns Scanner and advances the cursor.
+	SkipAny(b []byte) Scanner
 
 	// Endof detects whether end-of-file is reached in the input
 	// stream and return a boolean indicating the same.
@@ -67,16 +71,22 @@ func (s *SimpleScanner) GetCursor() int {
 	return s.cursor
 }
 
-// Match method receiver in Scanner{} interface.
-func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
-	var err error
+func (s *SimpleScanner) getPattern(pattern string) *regexp.Regexp {
 	regc, ok := s.patternCache[pattern]
 	if !ok {
+		var err error
 		if regc, err = regexp.Compile(pattern); err != nil {
 			panic(err)
 		}
 		s.patternCache[pattern] = regc
 	}
+
+	return regc
+}
+
+// Match method receiver in Scanner{} interface.
+func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
+	regc := s.getPattern(pattern)
 	if token := regc.Find(s.buf[s.cursor:]); token != nil {
 		s.cursor += len(token)
 		return token, s
@@ -84,19 +94,35 @@ func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	return nil, s
 }
 
+// MatchString method receiver in Scanner{} interface.
+func (s *SimpleScanner) MatchString(str string) (bool, Scanner) {
+	if len(s.buf[s.cursor:]) < len(str) {
+		return false, s
+	}
+
+	matching := true
+	for i, b := range []byte(str) {
+		if s.buf[s.cursor+i] != b {
+			matching = false
+			break
+		}
+	}
+
+	if matching {
+		s.cursor += len(str)
+		return true, s
+	}
+
+	return false, s
+}
+
 // SubmatchAll method receiver in Scanner{} interface.
 func (s *SimpleScanner) SubmatchAll(
 	pattern string) (map[string][]byte, Scanner) {
 
-	var err error
-	regc, ok := s.patternCache[pattern]
-	if !ok {
-		if regc, err = regexp.Compile(pattern); err != nil {
-			panic(err)
-		}
-		s.patternCache[pattern] = regc
-	}
+	regc := s.getPattern(pattern)
 	matches := regc.FindSubmatch(s.buf[s.cursor:])
+
 	if matches != nil {
 		captures := make(map[string][]byte)
 		names := regc.SubexpNames()
@@ -112,9 +138,25 @@ func (s *SimpleScanner) SubmatchAll(
 	return nil, s
 }
 
-// SkipWS method receiver in Scanner{} interface.
-func (s *SimpleScanner) SkipWS() ([]byte, Scanner) {
-	return s.Match(`^[ \t\r\n]+`)
+// SkipAny method receiver in Scanner{} interface.
+func (s *SimpleScanner) SkipAny(bytes []byte) Scanner {
+	matching := true
+
+	for matching == true {
+		for i, v := range bytes {
+			if s.buf[s.cursor] == v {
+				s.cursor++
+			} else if (i + 1) == len(bytes) {
+				matching = false
+			}
+
+			if s.Endof() {
+				return s
+			}
+		}
+	}
+
+	return s
 }
 
 // Endof method receiver in Scanner{} interface.

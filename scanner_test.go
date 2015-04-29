@@ -50,32 +50,35 @@ func TestSubmatchAll(t *testing.T) {
 	}
 }
 
-func TestSkipWS(t *testing.T) {
-	text := []byte(`        `)
-	ref := `        `
-	s := NewScanner(text)
-	m, s := s.SkipWS()
-	if string(m) != ref {
-		t.Fatalf("mismatch expected %q, got %q", ref, string(m))
+func TestSkipAny(t *testing.T) {
+	text := `B  
+			B
+			   BA`
+	s := NewScanner([]byte(text))
+	s = s.SkipAny([]byte{' ', '\n', '\t', 'B'})
+
+	aRef := []byte("A")
+	a, snew := s.Match("A")
+
+	if a[0] != aRef[0] {
+		t.Fatalf("expected character A after skipping whitespaces and B")
 	}
-	expcur := 8
-	if s.GetCursor() != expcur {
-		t.Fatalf("expected cursor position %v, got %v", expcur, s.GetCursor())
+
+	if snew.Endof() {
+		t.Fatalf("character A should be the last one in the input text")
 	}
 }
 
 func TestEndof(t *testing.T) {
-	text := []byte(`        `)
+	text := []byte(`     text`)
 	s := NewScanner(text)
-	_, s = s.SkipWS()
-	if s.Endof() == false {
-		t.Fatalf("expected end of text")
+	s = s.SkipAny([]byte{' '})
+	if s.Endof() {
+		t.Fatalf("did not expect end of text")
 	}
 
-	text = []byte(`        text`)
-	s = NewScanner(text)
-	_, s = s.SkipWS()
-	if s.Endof() == true {
-		t.Fatalf("did not expect end of text")
+	s = s.SkipAny([]byte{'t', 'e', 'x'})
+	if !s.Endof() {
+		t.Fatalf("expect end of text")
 	}
 }
