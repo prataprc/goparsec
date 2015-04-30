@@ -204,9 +204,18 @@ func Maybe(callb Nodify, parser interface{}) Parser {
 	}
 }
 
-//---------------
-// Local function
-//---------------
+//Helper function to determine if a node is a []ParsecNode
+func IsTerminal(node ParsecNode) (bool, int) {
+	if ns, ok := node.([]ParsecNode); ok {
+		return true, len(ns)
+	} else {
+		return false, 0
+	}
+}
+
+//----------------
+// Local functions
+//----------------
 
 func doParse(parser interface{}, s Scanner) (ParsecNode, Scanner) {
 	switch p := parser.(type) {

@@ -50,6 +50,35 @@ func TestSubmatchAll(t *testing.T) {
 	}
 }
 
+func TestMatchString(t *testing.T) {
+	text := `myString0`
+
+	s := NewScanner([]byte(text))
+	ok1, s := s.MatchString("my")
+	ok2, s := s.MatchString("String0")
+
+	if !ok1 || !ok2 {
+		t.Fatalf("did not match correctly")
+	}
+
+	if !s.Endof() {
+		t.Fatalf("expect end of text")
+	}
+
+	//Not matching case
+	text2 := `myString`
+	s = NewScanner([]byte(text2))
+	ok3, s := s.MatchString("myString0")
+
+	if ok3 {
+		t.Fatalf("shouldn't have matched")
+	}
+
+	if s.Endof() {
+		t.Fatalf("did not expect end of text")
+	}
+}
+
 func TestSkipAny(t *testing.T) {
 	text := `B  
 			B
@@ -64,13 +93,13 @@ func TestSkipAny(t *testing.T) {
 		t.Fatalf("expected character A after skipping whitespaces and B")
 	}
 
-	if snew.Endof() {
-		t.Fatalf("character A should be the last one in the input text")
+	if !snew.Endof() {
+		t.Fatalf("input text should have been completely skipped or matched")
 	}
 }
 
 func TestEndof(t *testing.T) {
-	text := []byte(`     text`)
+	text := []byte(`    text`)
 	s := NewScanner(text)
 	s = s.SkipAny([]byte{' '})
 	if s.Endof() {
@@ -78,6 +107,7 @@ func TestEndof(t *testing.T) {
 	}
 
 	s = s.SkipAny([]byte{'t', 'e', 'x'})
+
 	if !s.Endof() {
 		t.Fatalf("expect end of text")
 	}

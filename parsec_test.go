@@ -4,11 +4,9 @@ import "testing"
 import "reflect"
 
 func TestStrEOF(t *testing.T) {
-	word := String()
+	word := And(allTokens, String(), Token(" ", "SPACE"))
 	Y := Many(
-		func(ns []ParsecNode) ParsecNode {
-			return ns
-		},
+		allTokens,
 		word)
 
 	input := `"alpha" "beta" "gamma"`
@@ -19,8 +17,9 @@ func TestStrEOF(t *testing.T) {
 	ref := []ParsecNode{"\"alpha\"", "\"beta\"", "\"gamma\""}
 	if !reflect.DeepEqual(nodes, ref) {
 		t.Fatal("did not parse correctly: ", nodes)
-		for v := range nodes {
-
-		}
 	}
+}
+
+func allTokens(ns []ParsecNode) ParsecNode {
+	return ns
 }

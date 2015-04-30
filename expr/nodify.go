@@ -2,7 +2,7 @@
 
 package expr
 
-import "github.com/prataprc/goparsec"
+import "github.com/leovailati/goparsec"
 
 func one2one(ns []parsec.ParsecNode) parsec.ParsecNode {
 	if ns == nil || len(ns) == 0 {

@@ -18,7 +18,7 @@ package expr
 import "strconv"
 import "fmt"
 
-import "github.com/prataprc/goparsec"
+import "github.com/leovailati/goparsec"
 
 var _ = fmt.Sprintf("dummp print")
 
@@ -27,19 +27,19 @@ var Y parsec.Parser
 var prod, sum, value parsec.Parser // circular rats
 
 // Terminal rats
-var openparan = parsec.Token(`\(`, "OPENPARAN")
-var closeparan = parsec.Token(`\)`, "CLOSEPARAN")
-var addop = parsec.Token(`\+`, "ADD")
-var subop = parsec.Token(`-`, "SUB")
-var multop = parsec.Token(`\*`, "MULT")
-var divop = parsec.Token(`/`, "DIV")
+var openparan = parsec.TokenWS(`\(`, "OPENPARAN")
+var closeparan = parsec.TokenWS(`\)`, "CLOSEPARAN")
+var addop = parsec.TokenWS(`\+`, "ADD")
+var subop = parsec.TokenWS(`-`, "SUB")
+var multop = parsec.TokenWS(`\*`, "MULT")
+var divop = parsec.TokenWS(`/`, "DIV")
 
 // NonTerminal rats
 // addop -> "+" |  "-"
-var sumOp = parsec.OrdTokens([]string{`\+`, `-`}, []string{"ADD", "SUB"})
+var sumOp = parsec.OrdChoice(one2one, addop, subop)
 
 // mulop -> "*" |  "/"
-var prodOp = parsec.OrdTokens([]string{`\*`, `/`}, []string{"MULT", "DIV"})
+var prodOp = parsec.OrdChoice(one2one, multop, divop)
 
 // value -> "(" expr ")"
 var groupExpr = parsec.And(exprNode, openparan, &sum, closeparan)

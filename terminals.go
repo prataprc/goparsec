@@ -82,6 +82,25 @@ func Token(pattern string, name string) Parser {
 	}
 }
 
+// TokenWS takes a pattern and returns a parser that will
+// match the pattern with input stream. All the white space
+// before will be skipped
+func TokenWS(pattern string, name string) Parser {
+	return func(s Scanner) (ParsecNode, Scanner) {
+		news := s.Clone()
+		news.SkipAny([]byte{' ', '\n', '\t'})
+		if tok, _ := news.Match("^" + pattern); tok != nil {
+			t := Terminal{
+				Name:     name,
+				Value:    string(tok),
+				Position: news.GetCursor(),
+			}
+			return &t, news
+		}
+		return nil, s
+	}
+}
+
 // OrdTokens to parse a single token based on one of the
 // specified `patterns`.
 func OrdTokens(patterns []string, names []string) Parser {
@@ -113,9 +132,9 @@ func OrdTokens(patterns []string, names []string) Parser {
 }
 
 // End is a parser function to detect end of scanner output.
-func End(s Scanner) (ParsecNode, Scanner) {
-	return s.Endof(), s
-}
+//func End(s Scanner) (ParsecNode, Scanner) {
+//	return s.Endof(), s
+//}
 
 // NoEnd is a parser function to detect not-an-end of
 // scanner output.

@@ -100,20 +100,14 @@ func (s *SimpleScanner) MatchString(str string) (bool, Scanner) {
 		return false, s
 	}
 
-	matching := true
 	for i, b := range []byte(str) {
 		if s.buf[s.cursor+i] != b {
-			matching = false
-			break
+			return false, s
 		}
 	}
 
-	if matching {
-		s.cursor += len(str)
-		return true, s
-	}
-
-	return false, s
+	s.cursor += len(str)
+	return true, s
 }
 
 // SubmatchAll method receiver in Scanner{} interface.
@@ -143,15 +137,15 @@ func (s *SimpleScanner) SkipAny(bytes []byte) Scanner {
 	matching := true
 
 	for matching == true {
-		for i, v := range bytes {
+		matching = false
+		for _, v := range bytes {
 			if s.buf[s.cursor] == v {
 				s.cursor++
-			} else if (i + 1) == len(bytes) {
-				matching = false
-			}
+				matching = true
 
-			if s.Endof() {
-				return s
+				if s.Endof() {
+					return s
+				}
 			}
 		}
 	}
@@ -161,8 +155,5 @@ func (s *SimpleScanner) SkipAny(bytes []byte) Scanner {
 
 // Endof method receiver in Scanner{} interface.
 func (s *SimpleScanner) Endof() bool {
-	if s.cursor >= len(s.buf) {
-		return true
-	}
-	return false
+	return s.cursor >= len(s.buf)
 }
