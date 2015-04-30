@@ -4,7 +4,7 @@ package expr
 
 import "testing"
 
-import "github.com/leovailati/goparsec"
+import "github.com/prataprc/goparsec"
 
 var exprText = `4+123+23+67+89+87*78/67-98-199`
 

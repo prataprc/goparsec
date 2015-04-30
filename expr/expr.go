@@ -18,7 +18,7 @@ package expr
 import "strconv"
 import "fmt"
 
-import "github.com/leovailati/goparsec"
+import "github.com/prataprc/goparsec"
 
 var _ = fmt.Sprintf("dummp print")
 
