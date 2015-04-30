@@ -136,6 +136,10 @@ func (s *SimpleScanner) SubmatchAll(
 func (s *SimpleScanner) SkipAny(bytes []byte) Scanner {
 	matching := true
 
+	if s.Endof() || bytes == nil {
+		return s
+	}
+
 	for matching == true {
 		matching = false
 		for _, v := range bytes {

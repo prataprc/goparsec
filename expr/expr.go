@@ -57,9 +57,17 @@ func init() {
 	// prod-> value (mulop value)*
 	prod = parsec.And(prodNode, &value, valueK)
 	// value -> num | "(" expr ")"
-	value = parsec.OrdChoice(exprValueNode, parsec.Int(), groupExpr)
+	value = parsec.OrdChoice(exprValueNode, intWS(), groupExpr)
 	// expr  -> sum
 	Y = parsec.OrdChoice(one2one, sum)
+}
+
+func intWS() parsec.Parser {
+	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
+		s = s.SkipAny([]byte{' ', '\n', '\t'})
+		p := parsec.Int()
+		return p(s)
+	}
 }
 
 //----------

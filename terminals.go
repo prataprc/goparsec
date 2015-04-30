@@ -88,7 +88,7 @@ func Token(pattern string, name string) Parser {
 func TokenWS(pattern string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
-		news.SkipAny([]byte{' ', '\n', '\t'})
+		news.SkipAny([]byte{' ', '\n', '\t'}) //skip in the clone
 		if tok, _ := news.Match("^" + pattern); tok != nil {
 			t := Terminal{
 				Name:     name,
