@@ -137,14 +137,13 @@ nodify callback is called with a slice of single parsecNode element if
 using the builtin scanner
 -------------------------
 
-The builtin scanner library manages the input buffer and a cursor into the
-buffer. Create a new scanner instance,
+The builtin scanner library manages the input buffer and implements a cursor into the buffer. Create a new scanner instance,
 
 .. code-block:: go
 
     s := parsec.NewScanner(text)
 
-the scanner library supplies method receivers like `Match()`, `SkipWS()` and
+the scanner library supplies method receivers like `Match(pattern)`, `SkipAny(bytes)` and
 `Endof()`. refer to scanner.go for more information on each of these methods.
 
 Examples
