@@ -195,6 +195,13 @@ func (s *JSONScanner) GetCursor() int {
 	return s.cursor
 }
 
+// SetCursor method receiver in Scanner interface.
+func (s *JSONScanner) SetCursor(cursor int) int {
+	old := s.cursor
+	s.cursor = cursor
+	return old
+}
+
 // Match method receiver in Scanner interface.
 func (s *JSONScanner) Match(pattern string) ([]byte, parsec.Scanner) {
 	return nil, nil
@@ -210,6 +217,11 @@ func (s *JSONScanner) SubmatchAll(
 // SkipWS method receiver in Scanner interface.
 func (s *JSONScanner) SkipWS() ([]byte, parsec.Scanner) {
 	return nil, nil
+}
+
+// Remaining method receiver in Scanner interface.
+func (s *JSONScanner) Remaining() []byte {
+	return s.buf[s.cursor:]
 }
 
 // Endof method receiver in Scanner interface.

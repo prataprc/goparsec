@@ -79,3 +79,23 @@ func TestEndof(t *testing.T) {
 		t.Fatalf("did not expect end of text")
 	}
 }
+
+func BenchmarkSScanClone(b *testing.B) {
+	text := []byte("hello world")
+	s := NewScanner(text)
+	for i := 0; i < b.N; i++ {
+		s.Clone()
+	}
+}
+
+func BenchmarkSScanSkipWS(b *testing.B) {
+	text := []byte("    hello world")
+	s := NewScanner(text)
+	cursor := s.GetCursor()
+	s.SkipWS()
+	s.SetCursor(cursor)
+	for i := 0; i < b.N; i++ {
+		s.SkipWS()
+		s.SetCursor(cursor)
+	}
+}

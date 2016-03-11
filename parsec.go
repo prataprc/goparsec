@@ -30,7 +30,7 @@ type ParsecNode interface{}
 // constructed using combinators.
 type Parser func(Scanner) (ParsecNode, Scanner)
 
-// Nodify callback function to construct custom ParsecNode.
+// Nodify callback function to construct non-terminal ParsecNode
 type Nodify func([]ParsecNode) ParsecNode
 
 // Terminal structure can be used to construct a terminal

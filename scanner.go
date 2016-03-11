@@ -17,6 +17,10 @@ type Scanner interface {
 	// GetCursor gets the current cursor position inside input text.
 	GetCursor() int
 
+	// SetCursor to set the current cursor position inside input text,
+	// return the old cursor position.
+	SetCursor(cursor int) int
+
 	// Match the input stream with `pattern` and return
 	// matching string after advancing the cursor.
 	Match(pattern string) ([]byte, Scanner)
@@ -29,6 +33,9 @@ type Scanner interface {
 	// SkipWs skips white space characters in the input stream.
 	// Return skipped whitespaces as byte-slice and advance the cursor.
 	SkipWS() ([]byte, Scanner)
+
+	// Remaining returns the remaining un-parsed text as byte slice.
+	Remaining() []byte
 
 	// Endof detects whether end-of-file is reached in the input
 	// stream and return a boolean indicating the same.
@@ -65,6 +72,13 @@ func (s *SimpleScanner) Clone() Scanner {
 // GetCursor method receiver in Scanner{} interface.
 func (s *SimpleScanner) GetCursor() int {
 	return s.cursor
+}
+
+// SetCursor method receiver in Scanner{} interface.
+func (s *SimpleScanner) SetCursor(cursor int) int {
+	old := s.cursor
+	s.cursor = cursor
+	return old
 }
 
 // Match method receiver in Scanner{} interface.
@@ -115,6 +129,11 @@ func (s *SimpleScanner) SubmatchAll(
 // SkipWS method receiver in Scanner{} interface.
 func (s *SimpleScanner) SkipWS() ([]byte, Scanner) {
 	return s.Match(`^[ \t\r\n]+`)
+}
+
+// Remaining method receiver in Scanner{} interface.
+func (s *SimpleScanner) Remaining() []byte {
+	return s.buf[s.cursor:]
 }
 
 // Endof method receiver in Scanner{} interface.
