@@ -1,3 +1,1 @@
-- add test cases for parsec.
-- code-coverage.
-- continuous integration.
+- run travis for go1.4, go1.5, go1.6
