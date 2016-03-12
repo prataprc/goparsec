@@ -12,7 +12,7 @@ func TestTerminalString(t *testing.T) {
 	terminal := node.(*Terminal)
 	if s.Endof() == false {
 		t.Errorf("expected end of text")
-	} else if ref := `"hello \"world"`; terminal.Value != ref {
+	} else if ref := `"hello "world"`; terminal.Value != ref {
 		t.Errorf("expected %v, got %v", ref, terminal.Value)
 	} else if terminal.Name != "STRING" {
 		t.Errorf("expected %v, got %v", "STRING", terminal.Name)
@@ -104,11 +104,11 @@ func TestTerminalChar(t *testing.T) {
 }
 
 func TestTerminalFloat(t *testing.T) {
-	s := NewScanner([]byte(` 10.`))
+	s := NewScanner([]byte(` 10.1`))
 	node, _ := Float()(s)
 	terminal := node.(*Terminal)
-	if terminal.Value != `10.` {
-		t.Errorf("expected %v, got %v", `10.`, terminal.Value)
+	if terminal.Value != `10.1` {
+		t.Errorf("expected %v, got %v", `10.1`, terminal.Value)
 	} else if terminal.Name != "FLOAT" {
 		t.Errorf("expected %v, got %v", "FLOAT", terminal.Name)
 	} else if terminal.Position != 1 {
