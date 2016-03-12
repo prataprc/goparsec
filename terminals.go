@@ -54,7 +54,7 @@ func Char() Parser {
 // Float returns a parser function to match a float literal
 // in the input stream, skips leading white-space.
 func Float() Parser {
-	return Token(`[+-]?[0-9]*\.[0-9]+`, "FLOAT")
+	return Token(`-?[0-9]*\.[0-9]+`, "FLOAT")
 }
 
 // Hex returns a parser function to match a hexadecimal
