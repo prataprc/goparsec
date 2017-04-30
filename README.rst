@@ -122,6 +122,21 @@ second parser, if specified, fails.
 nodify callback is called with a slice of ParsecNodes obtained from every
 match of the first parser, otherwise callback is ignored.
 
+ManyUntil
+~~~~
+
+.. code-block:: go
+    func ManyUntil(callb Nodify, parsers ...interface{}) Parser {
+
+accepts a two or three parsers, where the first element must match `one or more
+times` with current input text and the second optional element acts as token
+separator. The last parser specifies a final token to stop matching. Note that
+the ManyUntil repetition will exit when first parser or second parser, if
+specified, fails or the last parser succeeds.
+
+nodify callback is called with a slice of ParsecNodes obtained from every
+match of the first parser, otherwise callback is ignored.
+
 Maybe
 ~~~~~
 
