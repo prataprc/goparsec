@@ -26,6 +26,8 @@ import "fmt"
 // ParsecNode type defines a node in the AST
 type ParsecNode interface{}
 
+type MaybeNone string
+
 // Parser function parses input text, higher order parsers are
 // constructed using combinators.
 type Parser func(Scanner) (ParsecNode, Scanner)
@@ -198,7 +200,7 @@ func Maybe(callb Nodify, parser interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		n, news := doParse(parser, s.Clone())
 		if n == nil {
-			return nil, s
+			return MaybeNone("missing"), s
 		}
 		return docallback(callb, []ParsecNode{n}), news
 	}
@@ -215,7 +217,7 @@ func doParse(parser interface{}, s Scanner) (ParsecNode, Scanner) {
 	case *Parser:
 		return (*p)(s)
 	default:
-		panic(fmt.Errorf("type of parser %T not supported", parser))
+		panic(fmt.Errorf("type of parser `%T` not supported", parser))
 	}
 }
 
