@@ -1,3 +1,0 @@
-- add test cases for parsec.
-- code-coverage.
-- continuous integration.
