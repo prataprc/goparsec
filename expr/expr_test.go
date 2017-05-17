@@ -6,8 +6,8 @@ import "testing"
 
 import "github.com/prataprc/goparsec"
 
-var exprText = `4 + 123 + 23 + 67 + 89 +
-87 * 78 / 67 - 98 - 199`
+var exprText = `4 + 123 + 23 + 67 +89 + 87 *78
+/67-98-		 199`
 
 func TestExpr(t *testing.T) {
 	s := parsec.NewScanner([]byte(exprText))
@@ -26,7 +26,7 @@ func BenchmarkExpr1Op(b *testing.B) {
 }
 
 func BenchmarkExpr2Op(b *testing.B) {
-	text := []byte(`19 + 10 * 20`)
+	text := []byte(`19+10*20`)
 	for i := 0; i < b.N; i++ {
 		Y(parsec.NewScanner(text))
 	}
@@ -34,7 +34,7 @@ func BenchmarkExpr2Op(b *testing.B) {
 }
 
 func BenchmarkExpr3Op(b *testing.B) {
-	text := []byte(`19 + 10 * 20 / 9`)
+	text := []byte(`19 + 10 * 20/9`)
 	for i := 0; i < b.N; i++ {
 		Y(parsec.NewScanner(text))
 	}

@@ -27,19 +27,19 @@ var Y parsec.Parser
 var prod, sum, value parsec.Parser // circular rats
 
 // Terminal rats
-var openparan = parsec.Token(`\(`, "OPENPARAN")
-var closeparan = parsec.Token(`\)`, "CLOSEPARAN")
-var addop = parsec.Token(`\+`, "ADD")
-var subop = parsec.Token(`-`, "SUB")
-var multop = parsec.Token(`\*`, "MULT")
-var divop = parsec.Token(`/`, "DIV")
+var openparan = parsec.TokenWS(`\(`, "OPENPARAN")
+var closeparan = parsec.TokenWS(`\)`, "CLOSEPARAN")
+var addop = parsec.TokenWS(`\+`, "ADD")
+var subop = parsec.TokenWS(`-`, "SUB")
+var multop = parsec.TokenWS(`\*`, "MULT")
+var divop = parsec.TokenWS(`/`, "DIV")
 
 // NonTerminal rats
 // addop -> "+" |  "-"
-var sumOp = parsec.OrdTokens([]string{`\+`, `-`}, []string{"ADD", "SUB"})
+var sumOp = parsec.OrdChoice(one2one, addop, subop)
 
 // mulop -> "*" |  "/"
-var prodOp = parsec.OrdTokens([]string{`\*`, `/`}, []string{"MULT", "DIV"})
+var prodOp = parsec.OrdChoice(one2one, multop, divop)
 
 // value -> "(" expr ")"
 var groupExpr = parsec.And(exprNode, openparan, &sum, closeparan)
@@ -57,9 +57,17 @@ func init() {
 	// prod-> value (mulop value)*
 	prod = parsec.And(prodNode, &value, valueK)
 	// value -> num | "(" expr ")"
-	value = parsec.OrdChoice(exprValueNode, parsec.Int(), groupExpr)
+	value = parsec.OrdChoice(exprValueNode, intWS(), groupExpr)
 	// expr  -> sum
 	Y = parsec.OrdChoice(one2one, sum)
+}
+
+func intWS() parsec.Parser {
+	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
+		s = s.SkipAny([]byte{' ', '\n', '\t'})
+		p := parsec.Int()
+		return p(s)
+	}
 }
 
 //----------

@@ -19,17 +19,10 @@ var _ = fmt.Sprintf("dummy")
 // string in the input stream.
 func String() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
-		s.SkipWS()
-		scanner := s.(*SimpleScanner)
-		if !scanner.Endof() && scanner.buf[scanner.cursor] == '"' {
-			str, readn := scanString(scanner.buf[scanner.cursor:])
-			if str == nil || len(str) == 0 {
-				return nil, scanner
-			}
-			scanner.cursor += readn
-			return string(str), scanner
+		if str, snew := s.Match(`"(\.|[^\"])*"`); str != nil {
+			return &Terminal{"STRING", string(str), snew.GetCursor()}, snew
 		}
-		return nil, scanner
+		return nil, s
 	}
 }
 
@@ -54,7 +47,7 @@ func Hex() Parser {
 // Oct returns a parser function to match an octal number
 // literal in the input stream.
 func Oct() Parser {
-	return Token(`0[0-7]+`, "OCT")
+	return Token(`0[0-7]*`, "OCT")
 }
 
 // Int returns a parser function to match an integer literal
@@ -77,7 +70,25 @@ func Ident() Parser {
 func Token(pattern string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
-		news.SkipWS()
+		if tok, _ := news.Match("^" + pattern); tok != nil {
+			t := Terminal{
+				Name:     name,
+				Value:    string(tok),
+				Position: news.GetCursor(),
+			}
+			return &t, news
+		}
+		return nil, s
+	}
+}
+
+// TokenWS takes a pattern and returns a parser that will
+// match the pattern with input stream. All the white space
+// before will be skipped
+func TokenWS(pattern string, name string) Parser {
+	return func(s Scanner) (ParsecNode, Scanner) {
+		news := s.Clone()
+		news.SkipAny([]byte{' ', '\n', '\t'}) //skip in the clone
 		if tok, _ := news.Match("^" + pattern); tok != nil {
 			t := Terminal{
 				Name:     name,
@@ -106,7 +117,6 @@ func OrdTokens(patterns []string, names []string) Parser {
 	ordPattern := strings.Join(groups, "|")
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
-		news.SkipWS()
 		if captures, _ := news.SubmatchAll(ordPattern); captures != nil {
 			for name, tok := range captures {
 				t := Terminal{

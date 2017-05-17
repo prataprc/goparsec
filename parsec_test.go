@@ -1,25 +1,49 @@
 package parsec
 
 import "testing"
-import "reflect"
 
 func TestStrEOF(t *testing.T) {
-	word := String()
+	word := And(allTokens, String(), TokenWS("", "SPACE"))
 	Y := Many(
-		func(ns []ParsecNode) ParsecNode {
-			return ns
-		},
+		allTokens,
 		word)
 
 	input := `"alpha" "beta" "gamma"`
 	s := NewScanner([]byte(input))
 
 	root, _ := Y(s)
-	nodes := root.([]ParsecNode)
-	ref := []ParsecNode{"\"alpha\"", "\"beta\"", "\"gamma\""}
-	if !reflect.DeepEqual(nodes, ref) {
-		t.Fatal(nodes)
+	ref := []string{"\"alpha\"", "\"beta\"", "\"gamma\""}
+
+	_, n := IsTerminal(root)
+	correct := true
+
+	if n == 3 {
+		nodes := root.([]ParsecNode)
+
+		for i, v := range nodes {
+			if _, nn := IsTerminal(v); nn == 2 {
+				str, ok := v.([]ParsecNode)[0].(*Terminal)
+				if !ok || str.Value != ref[i] {
+					correct = false
+					t.Log("incorrect string parse")
+				}
+			} else {
+				correct = false
+				t.Log("each And subnode should have two terminals", nn)
+			}
+		}
+	} else {
+		correct = false
+		t.Log("the Many node should have three children")
 	}
+
+	if !correct {
+		t.Fatal("did not parse correctly: ", root)
+	}
+}
+
+func allTokens(ns []ParsecNode) ParsecNode {
+	return ns
 }
 
 func TestMany(t *testing.T) {
