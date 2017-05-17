@@ -132,14 +132,26 @@ func OrdTokens(patterns []string, names []string) Parser {
 }
 
 // End is a parser function to detect end of scanner output.
-//func End(s Scanner) (ParsecNode, Scanner) {
-//	return s.Endof(), s
-//}
+func End() Parser {
+	return func(s Scanner) (ParsecNode, Scanner) {
+		if s.Endof() {
+			return true, s
+		} else {
+			return nil, s
+		}
+	}
+}
 
 // NoEnd is a parser function to detect not-an-end of
 // scanner output.
-func NoEnd(s Scanner) (ParsecNode, Scanner) {
-	return !s.Endof(), s
+func NoEnd() Parser {
+	return func(s Scanner) (ParsecNode, Scanner) {
+		if !s.Endof() {
+			return true, s
+		} else {
+			return nil, s
+		}
+	}
 }
 
 var escapeCode = [256]byte{ // TODO: size can be optimized
