@@ -194,6 +194,59 @@ func Many(callb Nodify, parsers ...interface{}) Parser {
 	}
 }
 
+// ManyUntil combinator accepts three parsers, or references to
+// parsers, namely opScan, sepScan and untilScan, where opScan parser
+// will be used to match input string and contruct ParsecNode
+// and sepScan parser will be used to match input string and
+// ignore the matched string. If sepScan parser is not
+// supplied, then opScan parser will be applied on the input
+// until it fails.
+//
+// The process of matching opScan parser and sepScan parser
+// will continue in a loop until either one of them fails on
+// the input stream or untilScan matches.
+//
+// For every successful match of opScan, the returned
+// ParsecNode from matching parser will be accumulated and
+// passed as argument to Nodify callback. If there is not a
+// single match for opScan, then `nil` will be returned for
+// ParsecNode.
+func ManyUntil(callb Nodify, parsers ...interface{}) Parser {
+	var opScan, sepScan, untilScan interface{}
+	switch l := len(parsers); l {
+	case 2:
+		opScan, untilScan = parsers[0], parsers[1]
+	case 3:
+		opScan, sepScan, untilScan = parsers[0], parsers[1], parsers[2]
+	default:
+		panic(fmt.Errorf("ManyUntil parser doesn't accept %v parsers", l))
+	}
+	return func(s Scanner) (ParsecNode, Scanner) {
+		var n ParsecNode
+		var e ParsecNode
+		ns := make([]ParsecNode, 0)
+		news := s.Clone()
+		for {
+			if e, _ = doParse(untilScan, news.Clone()); e != nil {
+				break
+			}
+			if n, news = doParse(opScan, news); n == nil {
+				break
+			}
+			ns = append(ns, n)
+			if sepScan != nil {
+				if n, news = doParse(sepScan, news); n == nil {
+					break
+				}
+			}
+		}
+		if len(ns) == 0 {
+			return nil, s
+		}
+		return docallback(callb, ns), news
+	}
+}
+
 // Maybe combinator accepts a single parser, or reference to
 // a parser, and tries to match the input stream with it.
 func Maybe(callb Nodify, parser interface{}) Parser {
