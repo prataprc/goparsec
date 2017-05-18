@@ -127,6 +127,32 @@ func TestEndof(t *testing.T) {
 	}
 }
 
+func BenchmarkSScanClone(b *testing.B) {
+	text := []byte("hello world")
+	s := NewScanner(text)
+	for i := 0; i < b.N; i++ {
+		s.Clone()
+	}
+}
+
+func BenchmarkSScanSkipWS(b *testing.B) {
+	text := []byte("    hello world")
+	s := NewScanner(text)
+	for i := 0; i < b.N; i++ {
+		s.SkipWS()
+		s.(*SimpleScanner).resetcursor()
+	}
+}
+
+func BenchmarkSScanSkipAny(b *testing.B) {
+	text := []byte("    hello world")
+	s := NewScanner(text)
+	for i := 0; i < b.N; i++ {
+		s.SkipAny(`^[ hel]+`)
+		s.(*SimpleScanner).resetcursor()
+	}
+}
+
 func BenchmarkMatch(b *testing.B) {
 	s := NewScanner([]byte(`hello world`))
 	for i := 0; i < b.N; i++ {
