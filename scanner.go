@@ -33,10 +33,10 @@ type Scanner interface {
 	// Return skipped whitespaces as byte-slice and advance the cursor.
 	SkipWS() ([]byte, Scanner)
 
-	// Skips any occurence of the elements of the slice.
+	// SkipAny any occurence of the elements of the slice.
 	// Equivalent to Match(`(b[0]|b[1]|...|b[n])*`)
 	// Returns Scanner and advances the cursor.
-	SkipAny(b []byte) Scanner
+	SkipAny(pattern string) ([]byte, Scanner)
 
 	// Endof detects whether end-of-file is reached in the input
 	// stream and return a boolean indicating the same.
@@ -138,32 +138,15 @@ func (s *SimpleScanner) SubmatchAll(
 
 // SkipWS method receiver in Scanner{} interface.
 func (s *SimpleScanner) SkipWS() ([]byte, Scanner) {
-	return s.Match(`^[ \t\r\n]+`)
+	return s.SkipAny(`^[ \t\r\n]+`)
 }
 
 // SkipAny method receiver in Scanner{} interface.
-func (s *SimpleScanner) SkipAny(bytes []byte) Scanner {
-	matching := true
-
-	if s.Endof() || bytes == nil {
-		return s
+func (s *SimpleScanner) SkipAny(pattern string) ([]byte, Scanner) {
+	if pattern[0] != '^' {
+		pattern = "^" + pattern
 	}
-
-	for matching == true {
-		matching = false
-		for _, v := range bytes {
-			if s.buf[s.cursor] == v {
-				s.cursor++
-				matching = true
-
-				if s.Endof() {
-					return s
-				}
-			}
-		}
-	}
-
-	return s
+	return s.Match(pattern)
 }
 
 // Endof method receiver in Scanner{} interface.

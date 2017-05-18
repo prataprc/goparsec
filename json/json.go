@@ -218,8 +218,8 @@ func (s *JSONScanner) SkipWS() ([]byte, parsec.Scanner) {
 }
 
 // SkipAny method receiver in Scanner interface.
-func (s *JSONScanner) SkipAny([]byte) parsec.Scanner {
-	return nil
+func (s *JSONScanner) SkipAny(pattern string) ([]byte, parsec.Scanner) {
+	return nil, nil
 }
 
 // Endof method receiver in Scanner interface.

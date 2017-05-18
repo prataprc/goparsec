@@ -181,7 +181,7 @@ into the buffer. Create a new scanner instance,
 ```
 
 The scanner library supplies method receivers like ``Match(pattern)``,
-``SkipAny(bytes)`` and ``Endof()``, refer to scanner.go for more information
+``SkipAny(pattern)`` and ``Endof()``, refer to scanner.go for more information
 on each of these methods.
 
 Examples

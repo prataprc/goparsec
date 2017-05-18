@@ -64,7 +64,7 @@ func init() {
 
 func intWS() parsec.Parser {
 	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
-		s = s.SkipAny([]byte{' ', '\n', '\t'})
+		_, s = s.SkipAny(`^[  \n\t]+`)
 		p := parsec.Int()
 		return p(s)
 	}

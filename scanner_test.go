@@ -98,7 +98,7 @@ func TestSkipAny(t *testing.T) {
 			B
 			   BA`
 	s := NewScanner([]byte(text))
-	s = s.SkipAny([]byte{' ', '\n', '\t', 'B'})
+	_, s = s.SkipAny(`^[ \n\tB]+`)
 
 	aRef := []byte("A")
 	a, snew := s.Match("A")
@@ -115,12 +115,12 @@ func TestSkipAny(t *testing.T) {
 func TestEndof(t *testing.T) {
 	text := []byte(`    text`)
 	s := NewScanner(text)
-	s = s.SkipAny([]byte{' '})
+	_, s = s.SkipAny(`^[ ]+`)
 	if s.Endof() {
 		t.Fatalf("did not expect end of text")
 	}
 
-	s = s.SkipAny([]byte{'t', 'e', 'x'})
+	_, s = s.SkipAny(`^[tex]+`)
 
 	if !s.Endof() {
 		t.Fatalf("expect end of text")
