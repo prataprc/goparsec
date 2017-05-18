@@ -1,5 +1,8 @@
-Parser combinator library in Golang.
------------------------------------
+[![Build Status](https://travis-ci.org/prataprc/goparsec.svg?branch=master)](https://travis-ci.org/prataprc/goparsec)
+[![Coverage Status](https://coveralls.io/repos/github/prataprc/goparsec/badge.svg?branch=master)](https://coveralls.io/github/prataprc/goparsec?branch=master)
+
+Parser combinator library in Golang
+===================================
 
 A library to construct top-down recursive backtracking parsers using
 parser-combinators.  To know more about theory of parser
