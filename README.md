@@ -1,12 +1,13 @@
 [![Build Status](https://travis-ci.org/prataprc/goparsec.svg?branch=master)](https://travis-ci.org/prataprc/goparsec)
 [![Coverage Status](https://coveralls.io/repos/github/prataprc/goparsec/badge.svg?branch=master)](https://coveralls.io/github/prataprc/goparsec?branch=master)
+[![GoDoc](https://godoc.org/github.com/prataprc/goparsec?status.png)](https://godoc.org/github.com/prataprc/goparsec)
 
 Parser combinator library in Golang
 ===================================
 
 A library to construct top-down recursive backtracking parsers using
 parser-combinators.  To know more about theory of parser
-combinators, refer to : http://en.wikipedia.org/wiki/Parser_combinator
+combinators, [refer here](http://en.wikipedia.org/wiki/Parser_combinator)
 
 This package contains following components,
 
@@ -15,15 +16,12 @@ This package contains following components,
 * Regular expression based scanner.
 * Standard set of terminal tokens.
 
-**API reference**: https://godoc.org/github.com/prataprc/goparsec
-
 combinators
-~~~~~~~~~~~
+-----------
 
 Every combinator should confirm to the following signature,
 
-.. code-block:: go
-
+```go
     // ParsecNode type defines a node in the AST
     type ParsecNode interface{}
 
@@ -33,6 +31,7 @@ Every combinator should confirm to the following signature,
 
     // Nodify callback function to construct custom ParsecNode.
     type Nodify func([]ParsecNode) ParsecNode
+```
 
 Combinators take a variable number of parser functions and
 return a new parser function.
@@ -47,8 +46,7 @@ the parser could not match with input text it returns the scanner without
 consuming any input. For example, the following snippet is from ``And``
 combinator,
 
-.. code-block:: go
-
+```go
     var ns = make([]ParsecNode, 0, len(parsers))
     var n ParsecNode
     news := s.Clone()
@@ -60,6 +58,7 @@ combinator,
         ns = append(ns, n)
     }
     return docallback(callb, ns), news
+```
 
 we can see that a new instance of ``s`` is passed to each ``parser`` and when one
 of the parser returns failure (where n==nil), it simply returns the scanner
@@ -67,13 +66,14 @@ without consuming any tokens. Otherwise, it returns the new-scanner ``news``
 returned by the last parser.
 
 List of combinators
--------------------
+===================
 
 And
-~~~
+---
 
-.. code-block:: go
+```go
     func And(callb Nodify, parsers ...interface{}) Parser {
+```
 
 Accepts a collection of parsers that must sequentially match current
 input text, combinator fails when any of the parser fails to match.
@@ -82,10 +82,11 @@ Nodify callback is called with a slice of ParsecNodes obtained from each
 parser, otherwise callback is ignored.
 
 OrdChoice
-~~~~~~~~~
+---------
 
-.. code-block:: go
+```go
     func OrdChoice(callb Nodify, parsers ...interface{}) Parser {
+```
 
 Accepts a collection of parsers, where atleast one of the parser should
 match current input text, combinator fails when all the parser fail to
@@ -98,13 +99,14 @@ ignored.
 When a parser matches the input text remaining parsers are not tried.
 
 Kleene
-~~~~~~
+------
 
-.. code-block:: go
+```go
     func Kleene(callb Nodify, parsers ...interface{}) Parser {
+```
 
-Accepts a pair of parser, where the first element must match `zero or more
-times` with current input text and the second optional element acts as token
+Accepts a pair of parser, where the first element must match _zero or more
+times_ with current input text and the second optional element acts as token
 separator, kleene combinator will exit when the first parser or the
 second parser, if specified, fails.
 
@@ -112,13 +114,14 @@ Nodify callback is called with a slice of ParsecNodes obtained from every
 match of the first parser, otherwise called with empty-slice of ParsecNodes.
 
 Many
-~~~~
+----
 
-.. code-block:: go
+```go
     func Many(callb Nodify, parsers ...interface{}) Parser {
+```
 
-Accepts a pair of parser, where the first element must match `one or more
-times` with current input text and the second optional element acts as token
+Accepts a pair of parser, where the first element must match _one or more
+times_ with current input text and the second optional element acts as token
 separator. Note that the Many repeatition will exit when first parser or
 second parser, if specified, fails.
 
@@ -126,13 +129,14 @@ Nodify callback is called with a slice of ParsecNodes obtained from every
 match of the first parser, otherwise callback is ignored.
 
 ManyUntil
-~~~~
+---------
 
-.. code-block:: go
+```go
     func ManyUntil(callb Nodify, parsers ...interface{}) Parser {
+```
 
-accepts a two or three parsers, where the first element must match `one or more
-times` with current input text and the second optional element acts as token
+accepts a two or three parsers, where the first element must match _one or more
+times_ with current input text and the second optional element acts as token
 separator. The last parser specifies a final token to stop matching. Note that
 the ManyUntil repetition will exit when first parser or second parser, if
 specified, fails or the last parser succeeds.
@@ -141,50 +145,53 @@ nodify callback is called with a slice of ParsecNodes obtained from every
 match of the first parser, otherwise callback is ignored.
 
 Maybe
-~~~~~
+-----
 
-.. code-block:: go
+```go
     func Maybe(callb Nodify, parser interface{}) Parser {
+```
 
 Accepts a parser that can either match or does-not-match with current
 input text.
 
 Nodify callback is called with a slice of single parsecNode element if
-`Maybe` succeeds, otherwise callback is ignored.
+``Maybe`` succeeds, otherwise callback is ignored.
 
 using the builtin scanner
 -------------------------
 
-The builtin scanner library manages the input buffer and implements a cursor into the buffer. Create a new scanner instance,
+The builtin scanner library manages the input buffer and implements a cursor
+into the buffer. Create a new scanner instance,
 
-.. code-block:: go
-
+```go
     s := parsec.NewScanner(text)
+```
 
-the scanner library supplies method receivers like `Match(pattern)`, `SkipAny(bytes)` and
-`Endof()`. refer to scanner.go for more information on each of these methods.
+the scanner library supplies method receivers like ``Match(pattern)``,
+``SkipAny(bytes)`` and ``Endof()``, refer to scanner.go for more information
+on each of these methods.
 
 Examples
-~~~~~~~~
+--------
 
 * expr/expr.go, implements a parsec grammer to parse arithmetic expressions.
 * json/json.go, implements a parsec grammer to parse JSON document.
 
 clone the repository run the benchmark suite
 
-.. code-block:: bash
-
+```bash
     $ cd expr/
     $ go test -test.bench=. -test.benchmem=true
     $ cd json/
     $ go test -test.bench=. -test.benchmem=true
+```
 
 to run the example program,
 
-.. code-block:: bash
-
+```bash
     # to parse expression
     $ go run tools/parsec/parsec.go -expr "10 + 29"
 
     # to parse JSON string
     $ go run tools/parsec/parsec.go -json '{ "key1" : [10, "hello", true, null, false] }'
+```
