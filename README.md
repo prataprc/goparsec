@@ -7,7 +7,7 @@ Parser combinator library in Golang
 
 A library to construct top-down recursive backtracking parsers using
 parser-combinators.  To know more about theory of parser
-combinators, [refer here](http://en.wikipedia.org/wiki/Parser_combinator)
+combinators, [refer here](http://en.wikipedia.org/wiki/Parser_combinator).
 
 This package contains following components,
 
@@ -215,7 +215,7 @@ Projects using goparsec
 * [Monster](https://github.com/prataprc/monster), production system in golang.
 * [GoLedger](https://github.com/tn47/goledger), ledger re-write in golang.
 
-If your project is using goparsec you can raise a issue to list them under
+If your project is using goparsec you can raise an issue to list them under
 this section.
 
 Articles
