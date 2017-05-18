@@ -21,6 +21,7 @@ Quick links
 
 * [list of combinators](#list-of-combinators)
 * [using the builtin scanner](#using-the-builtin-scanner)
+* [projects using goparsec](#projects-using-goparsec)
 * [articles](#articles)
 * [how to contribute](#how-to-contribute)
 
@@ -207,6 +208,15 @@ To run the example program,
     # to parse JSON string
     $ go run tools/parsec/parsec.go -json '{ "key1" : [10, "hello", true, null, false] }'
 ```
+
+Projects using goparsec
+-----------------------
+
+* [Monster](https://github.com/prataprc/monster), production system in golang.
+* [GoLedger](https://github.com/tn47/goledger), ledger re-write in golang.
+
+If your project is using goparsec you can raise a issue to list them under
+this section.
 
 Articles
 --------
