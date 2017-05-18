@@ -10,11 +10,11 @@ before_install:
   - go get github.com/mattn/goveralls
   - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
   - go get github.com/prataprc/monster
-  - cd $HOME/gopath/src/github.com/prataprc/monster; go install ./...
+  - cd $HOME/gopath/src/github.com/prataprc/monster; go install ./...; cd -
 
 script:
   - go get ./...
   - make test
   - go test -run=xxx -test.bench=. -test.benchmem=true ./...
   - $HOME/gopath/bin/goveralls -service=travis-ci
-  - for f in `find ~/ -name "*.prod"`; do echo $f; $HOME/gopath/bin/monster -bagdir ../bags -count 1 -seed 1 $f; done
+  - for f in `find ~/ -name "*.prod"`; do echo $f; $HOME/gopath/bin/monster -bagdir $HOME/gopath/src/github.com/prataprc/monster/bags -count 1 -seed 1 $f; done
