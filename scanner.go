@@ -29,6 +29,10 @@ type Scanner interface {
 	// advancing the cursor.
 	SubmatchAll(pattern string) (map[string][]byte, Scanner)
 
+	// SkipWs skips white space characters in the input stream.
+	// Return skipped whitespaces as byte-slice and advance the cursor.
+	SkipWS() ([]byte, Scanner)
+
 	// Skips any occurence of the elements of the slice.
 	// Equivalent to Match(`(b[0]|b[1]|...|b[n])*`)
 	// Returns Scanner and advances the cursor.
@@ -130,6 +134,11 @@ func (s *SimpleScanner) SubmatchAll(
 		return captures, s
 	}
 	return nil, s
+}
+
+// SkipWS method receiver in Scanner{} interface.
+func (s *SimpleScanner) SkipWS() ([]byte, Scanner) {
+	return s.Match(`^[ \t\r\n]+`)
 }
 
 // SkipAny method receiver in Scanner{} interface.

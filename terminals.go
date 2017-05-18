@@ -15,14 +15,20 @@ import "unicode/utf16"
 
 var _ = fmt.Sprintf("dummy")
 
-// String returns a parser function to match a double quoted
 // string in the input stream.
 func String() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
-		if str, snew := s.Match(`"(\.|[^\"])*"`); str != nil {
-			return &Terminal{"STRING", string(str), snew.GetCursor()}, snew
+		s.SkipWS()
+		scanner := s.(*SimpleScanner)
+		if !scanner.Endof() && scanner.buf[scanner.cursor] == '"' {
+			str, readn := scanString(scanner.buf[scanner.cursor:])
+			if str == nil || len(str) == 0 {
+				return nil, scanner
+			}
+			scanner.cursor += readn
+			return string(str), scanner
 		}
-		return nil, s
+		return nil, scanner
 	}
 }
 
@@ -70,6 +76,7 @@ func Ident() Parser {
 func Token(pattern string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
+		news.SkipWS()
 		if tok, _ := news.Match("^" + pattern); tok != nil {
 			t := Terminal{
 				Name:     name,
@@ -88,7 +95,7 @@ func Token(pattern string, name string) Parser {
 func TokenWS(pattern string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
-		news.SkipAny([]byte{' ', '\n', '\t'}) //skip in the clone
+		news.SkipWS()
 		if tok, _ := news.Match("^" + pattern); tok != nil {
 			t := Terminal{
 				Name:     name,

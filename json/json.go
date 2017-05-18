@@ -200,6 +200,11 @@ func (s *JSONScanner) Match(pattern string) ([]byte, parsec.Scanner) {
 	return nil, nil
 }
 
+// MatchString method receiver in Scanner interface.
+func (s *JSONScanner) MatchString(pattern string) (bool, parsec.Scanner) {
+	return false, nil
+}
+
 // SubmatchAll method receiver in Scanner interface.
 func (s *JSONScanner) SubmatchAll(
 	pattern string) (map[string][]byte, parsec.Scanner) {
@@ -210,6 +215,11 @@ func (s *JSONScanner) SubmatchAll(
 // SkipWS method receiver in Scanner interface.
 func (s *JSONScanner) SkipWS() ([]byte, parsec.Scanner) {
 	return nil, nil
+}
+
+// SkipAny method receiver in Scanner interface.
+func (s *JSONScanner) SkipAny([]byte) parsec.Scanner {
+	return nil
 }
 
 // Endof method receiver in Scanner interface.

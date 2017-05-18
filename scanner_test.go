@@ -79,6 +79,20 @@ func TestMatchString(t *testing.T) {
 	}
 }
 
+func TestSkipWS(t *testing.T) {
+	text := []byte(`        `)
+	ref := `        `
+	s := NewScanner(text)
+	m, s := s.SkipWS()
+	if string(m) != ref {
+		t.Fatalf("mismatch expected %q, got %q", ref, string(m))
+	}
+	expcur := 8
+	if s.GetCursor() != expcur {
+		t.Fatalf("expected cursor position %v, got %v", expcur, s.GetCursor())
+	}
+}
+
 func TestSkipAny(t *testing.T) {
 	text := `B  
 			B
