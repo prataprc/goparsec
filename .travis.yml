@@ -10,7 +10,6 @@ before_install:
   - go get github.com/mattn/goveralls
   - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
   - go get github.com/prataprc/monster
-  - go get github.com/couchbase/indexing
   - cd $HOME/gopath/src/github.com/prataprc/monster; go install ./...; cd -
 
 script:
