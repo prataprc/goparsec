@@ -74,10 +74,13 @@ func Ident() Parser {
 // match the pattern with input stream. Input stream will
 // be supplied via Scanner interface.
 func Token(pattern string, name string) Parser {
+	if pattern[0] != '^' {
+		pattern = "^" + pattern
+	}
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
 		news.SkipWS()
-		if tok, _ := news.Match("^" + pattern); tok != nil {
+		if tok, _ := news.Match(pattern); tok != nil {
 			t := Terminal{
 				Name:     name,
 				Value:    string(tok),
