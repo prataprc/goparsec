@@ -41,7 +41,7 @@ func Char() Parser {
 // Float returns a parser function to match a float literal
 // in the input stream.
 func Float() Parser {
-	return Token(`-?[0-9]*\.[0-9]+`, "FLOAT")
+	return Token(`[+-]?([0-9]+\.[0-9]*|\.[0-9]+)`, "FLOAT")
 }
 
 // Hex returns a parser function to match a hexadecimal
@@ -53,7 +53,7 @@ func Hex() Parser {
 // Oct returns a parser function to match an octal number
 // literal in the input stream.
 func Oct() Parser {
-	return Token(`0[0-7]*`, "OCT")
+	return Token(`0[0-7]+`, "OCT")
 }
 
 // Int returns a parser function to match an integer literal
@@ -80,11 +80,12 @@ func Token(pattern string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
 		news.SkipWS()
+		cursor := news.GetCursor()
 		if tok, _ := news.Match(pattern); tok != nil {
 			t := Terminal{
 				Name:     name,
 				Value:    string(tok),
-				Position: news.GetCursor(),
+				Position: cursor,
 			}
 			return &t, news
 		}
@@ -99,11 +100,12 @@ func TokenWS(pattern string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
 		news.SkipWS()
+		cursor := news.GetCursor()
 		if tok, _ := news.Match("^" + pattern); tok != nil {
 			t := Terminal{
 				Name:     name,
 				Value:    string(tok),
-				Position: news.GetCursor(),
+				Position: cursor,
 			}
 			return &t, news
 		}
@@ -127,12 +129,14 @@ func OrdTokens(patterns []string, names []string) Parser {
 	ordPattern := strings.Join(groups, "|")
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
+		news.SkipWS()
+		cursor := news.GetCursor()
 		if captures, _ := news.SubmatchAll(ordPattern); captures != nil {
 			for name, tok := range captures {
 				t := Terminal{
 					Name:     name,
 					Value:    string(tok),
-					Position: news.GetCursor(),
+					Position: cursor,
 				}
 				return &t, news
 			}

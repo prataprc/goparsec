@@ -221,7 +221,7 @@ this section.
 Articles
 --------
 
-* [Learn to use the ``Maybe`` combinator](http://prataprc.github.io/parser-combinator-maybe.html)
+* [How to use the ``Maybe`` combinator](http://prataprc.github.io/parser-combinator-maybe.html)
 
 How to contribute
 -----------------
@@ -234,3 +234,4 @@ the issue.
 global guidelines for writing go programs.
 * If the changeset is more than few lines, please generate a
 [report card](https://goreportcard.com/report/github.com/prataprc/goparsec).
+* As of now branch ``master`` is the development branch.
