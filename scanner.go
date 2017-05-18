@@ -3,6 +3,7 @@
 package parsec
 
 import "regexp"
+import "bytes"
 
 // Scanner interface supplies necessary methods to match the
 // input stream.
@@ -75,19 +76,6 @@ func (s *SimpleScanner) GetCursor() int {
 	return s.cursor
 }
 
-func (s *SimpleScanner) getPattern(pattern string) *regexp.Regexp {
-	regc, ok := s.patternCache[pattern]
-	if !ok {
-		var err error
-		if regc, err = regexp.Compile(pattern); err != nil {
-			panic(err)
-		}
-		s.patternCache[pattern] = regc
-	}
-
-	return regc
-}
-
 // Match method receiver in Scanner{} interface.
 func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	regc := s.getPattern(pattern)
@@ -100,17 +88,13 @@ func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 
 // MatchString method receiver in Scanner{} interface.
 func (s *SimpleScanner) MatchString(str string) (bool, Scanner) {
-	if len(s.buf[s.cursor:]) < len(str) {
+	ln := len(str)
+	if len(s.buf[s.cursor:]) < ln {
+		return false, s
+	} else if bytes.Compare(s.buf[s.cursor:s.cursor+ln], []byte(str)) != 0 {
 		return false, s
 	}
-
-	for i, b := range []byte(str) {
-		if s.buf[s.cursor+i] != b {
-			return false, s
-		}
-	}
-
-	s.cursor += len(str)
+	s.cursor += ln
 	return true, s
 }
 
@@ -152,4 +136,23 @@ func (s *SimpleScanner) SkipAny(pattern string) ([]byte, Scanner) {
 // Endof method receiver in Scanner{} interface.
 func (s *SimpleScanner) Endof() bool {
 	return s.cursor >= len(s.buf)
+}
+
+//---- local methods
+
+func (s *SimpleScanner) getPattern(pattern string) *regexp.Regexp {
+	regc, ok := s.patternCache[pattern]
+	if !ok {
+		var err error
+		if regc, err = regexp.Compile(pattern); err != nil {
+			panic(err)
+		}
+		s.patternCache[pattern] = regc
+	}
+
+	return regc
+}
+
+func (s *SimpleScanner) resetcursor() {
+	s.cursor = 0
 }

@@ -126,3 +126,19 @@ func TestEndof(t *testing.T) {
 		t.Fatalf("expect end of text")
 	}
 }
+
+func BenchmarkMatch(b *testing.B) {
+	s := NewScanner([]byte(`hello world`))
+	for i := 0; i < b.N; i++ {
+		s.(*SimpleScanner).resetcursor()
+		s.Match(`hello world`)
+	}
+}
+
+func BenchmarkMatchString(b *testing.B) {
+	s := NewScanner([]byte(`hello world`))
+	for i := 0; i < b.N; i++ {
+		s.(*SimpleScanner).resetcursor()
+		s.MatchString(`hello world`)
+	}
+}
