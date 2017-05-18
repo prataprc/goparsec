@@ -135,14 +135,17 @@ ManyUntil
     func ManyUntil(callb Nodify, parsers ...interface{}) Parser {
 ```
 
-accepts a two or three parsers, where the first element must match _one or more
+Accepts a two or three parsers, where the first element must match _one or more
 times_ with current input text and the second optional element acts as token
 separator. The last parser specifies a final token to stop matching. Note that
 the ManyUntil repetition will exit when first parser or second parser, if
 specified, fails or the last parser succeeds.
 
-nodify callback is called with a slice of ParsecNodes obtained from every
+Nodify callback is called with a slice of ParsecNodes obtained from every
 match of the first parser, otherwise callback is ignored.
+
+**Note:** The third parser, aka Until parser, consumes the text upon
+successful match.
 
 Maybe
 -----
@@ -154,8 +157,9 @@ Maybe
 Accepts a parser that can either match or does-not-match with current
 input text.
 
-Nodify callback is called with a slice of single parsecNode element if
-``Maybe`` succeeds, otherwise callback is ignored.
+Nodify callback is called with a slice of single parsecNode element of type
+``MaybeNone`` in case Maybe fails to match, otherwise parsecNode will
+correspond to the matching node.
 
 using the builtin scanner
 -------------------------
