@@ -22,7 +22,7 @@ Quick links
 * [list of combinators](#list-of-combinators)
 * [using the builtin scanner](#using-the-builtin-scanner)
 * [articles](#articles)
-* [how to contribution](#how-to-contribute)
+* [how to contribute](#how-to-contribute)
 
 Combinators
 -----------
@@ -211,7 +211,7 @@ To run the example program,
 Articles
 --------
 
-* [learn to use maybe combinator](http://prataprc.github.io/parser-combinator-maybe.html)
+* [Learn to use the ``Maybe`` combinator](http://prataprc.github.io/parser-combinator-maybe.html)
 
 How to contribute
 -----------------
