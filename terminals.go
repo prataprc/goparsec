@@ -70,9 +70,9 @@ func Ident() Parser {
 	return Token(`[A-Za-z][0-9a-zA-Z_]*`, "IDENT")
 }
 
-// Token takes a pattern and returns a parser that will
-// match the pattern with input stream. Input stream will
-// be supplied via Scanner interface.
+// Token takes a pattern and returns a parser that will match
+// the pattern with input stream. All leading white space
+// before will be skipped.
 func Token(pattern string, name string) Parser {
 	if pattern[0] != '^' {
 		pattern = "^" + pattern
@@ -93,13 +93,11 @@ func Token(pattern string, name string) Parser {
 	}
 }
 
-// TokenWS takes a pattern and returns a parser that will
-// match the pattern with input stream. All the white space
-// before will be skipped
-func TokenWS(pattern string, name string) Parser {
+// TokenStrict same as Token() but pattern will be matched
+// without skipping leading whitespace.
+func TokenStrict(pattern string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
-		news.SkipWS()
 		cursor := news.GetCursor()
 		if tok, _ := news.Match("^" + pattern); tok != nil {
 			t := Terminal{

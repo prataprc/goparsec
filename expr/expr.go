@@ -27,12 +27,12 @@ var Y parsec.Parser
 var prod, sum, value parsec.Parser // circular rats
 
 // Terminal rats
-var openparan = parsec.TokenWS(`\(`, "OPENPARAN")
-var closeparan = parsec.TokenWS(`\)`, "CLOSEPARAN")
-var addop = parsec.TokenWS(`\+`, "ADD")
-var subop = parsec.TokenWS(`-`, "SUB")
-var multop = parsec.TokenWS(`\*`, "MULT")
-var divop = parsec.TokenWS(`/`, "DIV")
+var openparan = parsec.Token(`\(`, "OPENPARAN")
+var closeparan = parsec.Token(`\)`, "CLOSEPARAN")
+var addop = parsec.Token(`\+`, "ADD")
+var subop = parsec.Token(`-`, "SUB")
+var multop = parsec.Token(`\*`, "MULT")
+var divop = parsec.Token(`/`, "DIV")
 
 // NonTerminal rats
 // addop -> "+" |  "-"
