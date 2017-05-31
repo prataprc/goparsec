@@ -240,6 +240,69 @@ func TestNotNoEnd(t *testing.T) {
 	}
 }
 
+func TestAtom(t *testing.T) {
+	assertpostive := func(node ParsecNode, scanner *SimpleScanner) {
+		if node == nil {
+			t.Errorf("expected node")
+		} else if tm := node.(*Terminal); tm.Name != "ATOM" {
+			t.Errorf("expected %q, got %q", "ATOM", tm.Name)
+		} else if tm.Value != "cos" {
+			t.Errorf("expected %q, got %q", "cos", tm.Value)
+		} else if x, y := string(scanner.buf[scanner.cursor:]), "mos"; x != y {
+			t.Errorf("expected %q, got %q", y, x)
+		}
+	}
+	// positive match
+	scanner := NewScanner([]byte("cosmos")).(*SimpleScanner)
+	node, sc := Atom("cos", "ATOM")(scanner)
+	scanner = sc.(*SimpleScanner)
+	assertpostive(node, scanner)
+	// positive match with leading whitespace
+	scanner = NewScanner([]byte("   cosmos")).(*SimpleScanner)
+	node, sc = Atom("cos", "ATOM")(scanner)
+	scanner = sc.(*SimpleScanner)
+	assertpostive(node, scanner)
+	// negative match
+	input := "hello,   cosmos"
+	scanner = NewScanner([]byte(input)).(*SimpleScanner)
+	node, sc = Atom("cos", "ATOM")(scanner)
+	scanner = sc.(*SimpleScanner)
+	if node != nil {
+		t.Errorf("expected nil")
+	} else if s := string(scanner.buf[scanner.cursor:]); s != input {
+		t.Errorf("expected %q, got %q", input, s)
+	}
+}
+
+func TestAtomExact(t *testing.T) {
+	assertpostive := func(node ParsecNode, scanner *SimpleScanner) {
+		if node == nil {
+			t.Errorf("expected node")
+		} else if tm := node.(*Terminal); tm.Name != "ATOM" {
+			t.Errorf("expected %q, got %q", "ATOM", tm.Name)
+		} else if tm.Value != "cos" {
+			t.Errorf("expected %q, got %q", "cos", tm.Value)
+		} else if x, y := string(scanner.buf[scanner.cursor:]), "mos"; x != y {
+			t.Errorf("expected %q, got %q", y, x)
+		}
+	}
+	// positive match
+	scanner := NewScanner([]byte("cosmos")).(*SimpleScanner)
+	node, sc := AtomExact("cos", "ATOM")(scanner)
+	scanner = sc.(*SimpleScanner)
+	assertpostive(node, scanner)
+	// match with leading whitespace (negative)
+	input := "   cosmos"
+	scanner = NewScanner([]byte(input)).(*SimpleScanner)
+	node, sc = AtomExact("cos", "ATOM")(scanner)
+	scanner = sc.(*SimpleScanner)
+	if node != nil {
+		t.Errorf("expected nil")
+	} else if s := string(scanner.buf[scanner.cursor:]); s != input {
+		t.Errorf("expected %q, got %q", input, s)
+	}
+}
+
 func BenchmarkTerminalString(b *testing.B) {
 	Y := String()
 	s := NewScanner([]byte(`  "hello"`))
@@ -296,8 +359,32 @@ func BenchmarkTerminalIdent(b *testing.B) {
 	}
 }
 
-func BenchmarkTerminalToken(b *testing.B) {
+func BenchmarkTToken(b *testing.B) {
+	Y := Token("   sometoken", "TOKEN")
+	s := NewScanner([]byte(`  sometoken`))
+	for i := 0; i < b.N; i++ {
+		Y(s)
+	}
+}
+
+func BenchmarkTTokenExact(b *testing.B) {
 	Y := Token("sometoken", "TOKEN")
+	s := NewScanner([]byte(`  sometoken`))
+	for i := 0; i < b.N; i++ {
+		Y(s)
+	}
+}
+
+func BenchmarkTAtom(b *testing.B) {
+	Y := Atom("   sometoken", "TOKEN")
+	s := NewScanner([]byte(`  sometoken`))
+	for i := 0; i < b.N; i++ {
+		Y(s)
+	}
+}
+
+func BenchmarkTAtomExact(b *testing.B) {
+	Y := AtomExact("sometoken", "TOKEN")
 	s := NewScanner([]byte(`  sometoken`))
 	for i := 0; i < b.N; i++ {
 		Y(s)

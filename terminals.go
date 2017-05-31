@@ -72,7 +72,7 @@ func Ident() Parser {
 
 // Token takes a pattern and returns a parser that will match
 // the pattern with input stream. All leading white space
-// before will be skipped.
+// before the token will be skipped.
 func Token(pattern string, name string) Parser {
 	if pattern[0] != '^' {
 		pattern = "^" + pattern
@@ -82,11 +82,7 @@ func Token(pattern string, name string) Parser {
 		news.SkipWS()
 		cursor := news.GetCursor()
 		if tok, _ := news.Match(pattern); tok != nil {
-			t := Terminal{
-				Name:     name,
-				Value:    string(tok),
-				Position: cursor,
-			}
+			t := Terminal{Name: name, Value: string(tok), Position: cursor}
 			return &t, news
 		}
 		return nil, s
@@ -100,11 +96,42 @@ func TokenExact(pattern string, name string) Parser {
 		news := s.Clone()
 		cursor := news.GetCursor()
 		if tok, _ := news.Match("^" + pattern); tok != nil {
-			t := Terminal{
-				Name:     name,
-				Value:    string(tok),
-				Position: cursor,
-			}
+			t := Terminal{Name: name, Value: string(tok), Position: cursor}
+			return &t, news
+		}
+		return nil, s
+	}
+}
+
+// Atom is similar to Token, takes a string to match with input
+// byte-by-byte. Internally uses the MatchString() API from Scanner.
+// All leading white space before the atom will be skipped. Note that partial
+// match shall also succeed, example:
+//
+//	    scanner := NewScanner([]byte("cosmos"))
+//		Atom("cos", "ATOM")(scanner) // will match
+//
+func Atom(match string, name string) Parser {
+	return func(s Scanner) (ParsecNode, Scanner) {
+		news := s.Clone()
+		news.SkipWS()
+		cursor := news.GetCursor()
+		if ok, _ := news.MatchString(match); ok {
+			t := Terminal{Name: name, Value: match, Position: cursor}
+			return &t, news
+		}
+		return nil, s
+	}
+}
+
+// AtomExact is similar to Atom(), but string will be matched without
+// skipping leading whitespace.
+func AtomExact(match string, name string) Parser {
+	return func(s Scanner) (ParsecNode, Scanner) {
+		news := s.Clone()
+		cursor := news.GetCursor()
+		if ok, _ := news.MatchString(match); ok {
+			t := Terminal{Name: name, Value: match, Position: cursor}
 			return &t, news
 		}
 		return nil, s
