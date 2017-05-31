@@ -93,9 +93,9 @@ func Token(pattern string, name string) Parser {
 	}
 }
 
-// TokenStrict same as Token() but pattern will be matched
+// TokenExact same as Token() but pattern will be matched
 // without skipping leading whitespace.
-func TokenStrict(pattern string, name string) Parser {
+func TokenExact(pattern string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
 		cursor := news.GetCursor()
