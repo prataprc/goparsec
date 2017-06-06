@@ -73,7 +73,10 @@ func And(callb Nodify, parsers ...interface{}) Parser {
 			}
 			ns = append(ns, n)
 		}
-		return docallback(callb, ns), news
+		if node := docallback(callb, ns); node != nil {
+			return node, news
+		}
+		return nil, s
 	}
 }
 
@@ -89,7 +92,9 @@ func OrdChoice(callb Nodify, parsers ...interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		for _, parser := range parsers {
 			if n, news := doParse(parser, s.Clone()); n != nil {
-				return docallback(callb, []ParsecNode{n}), news
+				if node := docallback(callb, []ParsecNode{n}); node != nil {
+					return node, news
+				}
 			}
 		}
 		return nil, s
@@ -187,10 +192,12 @@ func Many(callb Nodify, parsers ...interface{}) Parser {
 				}
 			}
 		}
-		if len(ns) == 0 {
-			return nil, s
+		if len(ns) > 0 {
+			if node := docallback(callb, ns); node != nil {
+				return node, news
+			}
 		}
-		return docallback(callb, ns), news
+		return nil, s
 	}
 }
 
@@ -240,10 +247,12 @@ func ManyUntil(callb Nodify, parsers ...interface{}) Parser {
 				}
 			}
 		}
-		if len(ns) == 0 {
-			return nil, s
+		if len(ns) > 0 {
+			if node := docallback(callb, ns); node != nil {
+				return node, news
+			}
 		}
-		return docallback(callb, ns), news
+		return nil, s
 	}
 }
 
@@ -255,7 +264,10 @@ func Maybe(callb Nodify, parser interface{}) Parser {
 		if n == nil {
 			return MaybeNone("missing"), s
 		}
-		return docallback(callb, []ParsecNode{n}), news
+		if node := docallback(callb, []ParsecNode{n}); node != nil {
+			return node, news
+		}
+		return MaybeNone("missing"), s
 	}
 }
 
