@@ -230,6 +230,11 @@ func (s *JSONScanner) Endof() bool {
 	return false
 }
 
+// SetWSPattern method receiver in Scanner interface.
+func (s *JSONScanner) SetWSPattern(pattern string) {
+	return
+}
+
 func colon() parsec.Parser {
 	return func(s parsec.Scanner) (parsec.ParsecNode, parsec.Scanner) {
 		return matchChar("COLON", ':', s)
