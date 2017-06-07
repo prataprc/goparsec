@@ -127,6 +127,21 @@ func TestEndof(t *testing.T) {
 	}
 }
 
+func TestSetWSPattern(t *testing.T) {
+	text := []byte(`// comment`)
+	ref := `// comment`
+	s := NewScanner(text)
+	s.SetWSPattern(`^//.*`)
+	m, s := s.SkipWS()
+	if string(m) != ref {
+		t.Fatalf("mismatch expected %q, got %q", ref, string(m))
+	}
+	expcur := 10
+	if s.GetCursor() != expcur {
+		t.Fatalf("expected cursor position %v, got %v", expcur, s.GetCursor())
+	}
+}
+
 func BenchmarkSScanClone(b *testing.B) {
 	text := []byte("hello world")
 	s := NewScanner(text)

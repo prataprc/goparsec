@@ -42,6 +42,10 @@ type Scanner interface {
 	// Endof detects whether end-of-file is reached in the input
 	// stream and return a boolean indicating the same.
 	Endof() bool
+
+	// SetWSPattern sets the pattern used by SkipWS()
+	// to match white space characters
+	SetWSPattern(pattern string)
 }
 
 // SimpleScanner implements Scanner interface based on
@@ -50,6 +54,7 @@ type SimpleScanner struct {
 	buf          []byte // input buffer
 	cursor       int    // cursor within input buffer
 	patternCache map[string]*regexp.Regexp
+	wsPattern    string // pattern used by SkipWS()
 }
 
 // NewScanner creates and returns a reference to new instance
@@ -59,6 +64,7 @@ func NewScanner(text []byte) Scanner {
 		buf:          text,
 		cursor:       0,
 		patternCache: make(map[string]*regexp.Regexp),
+		wsPattern:    `^[ \t\r\n]+`,
 	}
 }
 
@@ -68,6 +74,7 @@ func (s *SimpleScanner) Clone() Scanner {
 		buf:          s.buf,
 		cursor:       s.cursor,
 		patternCache: s.patternCache,
+		wsPattern:    s.wsPattern,
 	}
 }
 
@@ -122,7 +129,7 @@ func (s *SimpleScanner) SubmatchAll(
 
 // SkipWS method receiver in Scanner{} interface.
 func (s *SimpleScanner) SkipWS() ([]byte, Scanner) {
-	return s.SkipAny(`^[ \t\r\n]+`)
+	return s.SkipAny(s.wsPattern)
 }
 
 // SkipAny method receiver in Scanner{} interface.
@@ -136,6 +143,11 @@ func (s *SimpleScanner) SkipAny(pattern string) ([]byte, Scanner) {
 // Endof method receiver in Scanner{} interface.
 func (s *SimpleScanner) Endof() bool {
 	return s.cursor >= len(s.buf)
+}
+
+// SetWSPattern method receiver in Scanner{} interface.
+func (s *SimpleScanner) SetWSPattern(pattern string) {
+	s.wsPattern = pattern
 }
 
 //---- local methods
