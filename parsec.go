@@ -32,7 +32,16 @@ type MaybeNone string
 // constructed using combinators.
 type Parser func(Scanner) (ParsecNode, Scanner)
 
-// Nodify callback function to construct custom ParsecNode.
+// Nodify callback function to construct custom ParsecNode. Even when
+// combinators line AND, OR, MANY etc.. match the input string, it is
+// possible to fail them via nodify callback function, by returning nil.
+// This very useful in cases like:
+//
+// 	* where lookahead matching is required.
+//  * exceptional cases for a regex pattern.
+//
+// Note that some combinators like KLEENE shall not interpret the return
+// value from Nodify callback.
 type Nodify func([]ParsecNode) ParsecNode
 
 // Terminal structure can be used to construct a terminal
