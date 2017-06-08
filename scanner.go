@@ -141,8 +141,11 @@ func (s *SimpleScanner) Endof() bool {
 	return s.cursor >= len(s.buf)
 }
 
-func (s *SimpleScanner) SetWSPattern(pattern string) {
+// SetWSPattern to configure white space pattern. Typically used as
+//		scanner := NewScanner(input).SetWSPattern(" ")
+func (s *SimpleScanner) SetWSPattern(pattern string) *SimpleScanner {
 	s.wsPattern = pattern
+	return s
 }
 
 //---- local methods
