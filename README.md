@@ -20,11 +20,11 @@ This package contains following components,
 Quick links
 ===========
 
-* [list of combinators](#list-of-combinators)
-* [using the builtin scanner](#using-the-builtin-scanner)
-* [projects using goparsec](#projects-using-goparsec)
-* [articles](#articles)
-* [how to contribute](#how-to-contribute)
+* [List of combinators](#list-of-combinators)
+* [Using the builtin scanner](#using-the-builtin-scanner)
+* [Projects using goparsec](#projects-using-goparsec)
+* [Articles](#articles)
+* [How to contribute](#how-to-contribute)
 
 Combinators
 -----------
@@ -235,4 +235,4 @@ the issue.
 global guidelines for writing go programs.
 * If the changeset is more than few lines, please generate a
 [report card](https://goreportcard.com/report/github.com/prataprc/goparsec).
-* As of now branch ``master`` is the development branch.
+* As of now, branch ``master`` is the development branch.
