@@ -15,7 +15,7 @@ import "unicode/utf16"
 
 var _ = fmt.Sprintf("dummy")
 
-// string in the input stream.
+// String parse double quoted string in input text.
 func String() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		s.SkipWS()
@@ -108,7 +108,7 @@ func TokenExact(pattern string, name string) Parser {
 // All leading white space before the atom will be skipped. Note that partial
 // match shall also succeed, example:
 //
-//	    scanner := NewScanner([]byte("cosmos"))
+//		scanner := NewScanner([]byte("cosmos"))
 //		Atom("cos", "ATOM")(scanner) // will match
 //
 func Atom(match string, name string) Parser {

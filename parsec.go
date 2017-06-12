@@ -26,6 +26,8 @@ import "fmt"
 // ParsecNode type defines a node in the AST
 type ParsecNode interface{}
 
+// MaybeNone place holder type used be Maybe combinator if parser does not
+// match the input text.
 type MaybeNone string
 
 // Parser function parses input text, higher order parsers are
@@ -37,7 +39,7 @@ type Parser func(Scanner) (ParsecNode, Scanner)
 // possible to fail them via nodify callback function, by returning nil.
 // This very useful in cases like:
 //
-// 	* where lookahead matching is required.
+//	* where lookahead matching is required.
 //  * exceptional cases for a regex pattern.
 //
 // Note that some combinators like KLEENE shall not interpret the return
@@ -277,15 +279,6 @@ func Maybe(callb Nodify, parser interface{}) Parser {
 			return node, news
 		}
 		return MaybeNone("missing"), s
-	}
-}
-
-//Helper function to determine if a node is a []ParsecNode
-func IsTerminal(node ParsecNode) (bool, int) {
-	if ns, ok := node.([]ParsecNode); ok {
-		return true, len(ns)
-	} else {
-		return false, 0
 	}
 }
 
