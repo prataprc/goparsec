@@ -222,8 +222,8 @@ this section.
 Articles
 --------
 
-- [Parsing by composing functions](http://prataprc.github.io/parser-combinator-composition.html)
-- [Parser composition for recursive grammar](http://prataprc.github.io/parser-combinator-recursive.html)
+* [Parsing by composing functions](http://prataprc.github.io/parser-combinator-composition.html)
+* [Parser composition for recursive grammar](http://prataprc.github.io/parser-combinator-recursive.html)
 * [How to use the ``Maybe`` combinator](http://prataprc.github.io/parser-combinator-maybe.html)
 
 How to contribute
