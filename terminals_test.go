@@ -38,6 +38,34 @@ func TestTerminalString(t *testing.T) {
 		t.Errorf("unexpected terminal %q", tokstr)
 	}
 
+	// empty string
+	s = NewScanner([]byte(``))
+	node, s = String()(s)
+	if node != nil {
+		t.Errorf("expected nil")
+	}
+
+	// unicode encoded string
+	s = NewScanner([]byte("\"\\u849c\\u8089\""))
+	node, s = String()(s)
+	if node.(string) != "\"蒜肉\"" {
+		t.Errorf("expected %q, got %v", "蒜肉", node.(string))
+	}
+
+	// for code coverage
+	s = NewScanner([]byte("\""))
+	node, s = String()(s)
+	if node != nil {
+		t.Errorf("expected nil")
+	}
+
+	txt := "\"細繩,索\""
+	s = NewScanner([]byte(txt))
+	node, s = String()(s)
+	if node.(string) != txt {
+		t.Errorf("expected %v, got %v", txt, node.(string))
+	}
+
 	// malformed string
 	func() {
 		defer func() {
@@ -300,6 +328,23 @@ func TestAtomExact(t *testing.T) {
 		t.Errorf("expected nil")
 	} else if s := string(scanner.buf[scanner.cursor:]); s != input {
 		t.Errorf("expected %q, got %q", input, s)
+	}
+}
+
+func TestTokenExact(t *testing.T) {
+	// positive match
+	scanner := NewScanner([]byte("cosmos"))
+	node, _ := TokenExact("[cosm]+", "TOK")(scanner)
+	if tm := node.(*Terminal); tm.Name != "TOK" {
+		t.Errorf("expected %q, got %q", "TOK", tm.Name)
+	} else if tm.Value != "cosmos" {
+		t.Errorf("expected %q, got %q", "cos", tm.Value)
+	}
+	// negative match
+	scanner = NewScanner([]byte("   cosmos"))
+	node, _ = TokenExact("[cosm]+", "TOK")(scanner)
+	if node != nil {
+		t.Errorf("expected nil")
 	}
 }
 

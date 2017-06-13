@@ -1,7 +1,10 @@
 package parsec
 
+import "fmt"
 import "reflect"
 import "testing"
+
+var _ = fmt.Sprintf("dummy")
 
 func TestStrEOF(t *testing.T) {
 	word := String()
@@ -34,6 +37,16 @@ func TestMany(t *testing.T) {
 	if v == nil {
 		t.Errorf("Many() didn't match %q", e)
 	} else if len(v.([]ParsecNode)) != 3 {
+		t.Errorf("Many() didn't match all words %q", v)
+	}
+
+	w = Token("\\w+", "W")
+	m = Many(nil, w, Atom(",", "COMMA"))
+	s = NewScanner([]byte("one,two"))
+	v, e = m(s)
+	if v == nil {
+		t.Errorf("Many() didn't match %q", e)
+	} else if len(v.([]ParsecNode)) != 2 {
 		t.Errorf("Many() didn't match all words %q", v)
 	}
 }
@@ -89,5 +102,41 @@ func TestManyUntilStopSep(t *testing.T) {
 		t.Errorf("ManyUntil() didn't match %q", e)
 	} else if len(v.([]ParsecNode)) != 2 {
 		t.Errorf("ManyUntil() didn't stop %q", v)
+	}
+}
+
+func TestKleene(t *testing.T) {
+	y := Kleene(nil, Token("\\w+", "W"))
+
+	s := NewScanner([]byte("one two stop"))
+	node, e := y(s)
+	if node == nil {
+		t.Errorf("Kleene() didn't match %q", e)
+	} else if len(node.([]ParsecNode)) != 3 {
+		t.Errorf("Kleene() didn't match all words %q", node)
+	}
+
+	y = Kleene(nil, Token("\\w+", "W"), Atom(",", "COMMA"))
+	s = NewScanner([]byte("one,two"))
+	node, s = y(s)
+	if node == nil {
+		t.Errorf("Kleene() didn't match %q", e)
+	} else if len(node.([]ParsecNode)) != 2 {
+		t.Errorf("Kleene() didn't match all words %q", node)
+	}
+}
+
+func TestForwardReference(t *testing.T) {
+	var ycomma Parser
+
+	y := Kleene(nil, Maybe(nil, Token("\\w+", "WORD")), &ycomma)
+	ycomma = Atom(",", "COMMA")
+	s := NewScanner([]byte("one,two,,three"))
+	node, s := y(s)
+	nodes := node.([]ParsecNode)
+	if len(nodes) != 4 {
+		t.Errorf("expected length to be 4")
+	} else if _, ok := nodes[2].(MaybeNone); ok == false {
+		t.Errorf("expected MissingNone")
 	}
 }
