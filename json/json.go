@@ -182,6 +182,16 @@ func NewJSONScanner(text []byte) *JSONScanner {
 	}
 }
 
+// SetWSPattern method receiver in Scanner interface.
+func (s *JSONScanner) SetWSPattern(pattern string) parsec.Scanner {
+	return s
+}
+
+// SetWSPattern method receiver in Scanner interface.
+func (s *JSONScanner) TrackLineno() parsec.Scanner {
+	return s
+}
+
 // Clone method receiver in Scanner interface.
 func (s *JSONScanner) Clone() parsec.Scanner {
 	return &JSONScanner{
@@ -220,6 +230,11 @@ func (s *JSONScanner) SkipWS() ([]byte, parsec.Scanner) {
 // SkipAny method receiver in Scanner interface.
 func (s *JSONScanner) SkipAny(pattern string) ([]byte, parsec.Scanner) {
 	return nil, nil
+}
+
+// Lineno method receiver in Scanner interface.
+func (s *JSONScanner) Lineno() int {
+	return 0
 }
 
 // Endof method receiver in Scanner interface.

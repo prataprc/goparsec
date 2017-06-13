@@ -98,7 +98,7 @@ func TestSkipAny(t *testing.T) {
 			B
 			   BA`
 	s := NewScanner([]byte(text))
-	_, s = s.SkipAny(`^[ \n\tB]+`)
+	_, s = s.SkipAny(`[ \n\tB]+`)
 
 	aRef := []byte("A")
 	a, snew := s.Match("A")
@@ -127,6 +127,22 @@ func TestEndof(t *testing.T) {
 	}
 }
 
+func TestResetcursor(t *testing.T) {
+	text := []byte(`    text`)
+	s := NewScanner(text)
+	if s.Endof() == true {
+		t.Errorf("expected Endof false")
+	}
+	_, s = s.SkipAny(`^[ tex]+`)
+	if s.Endof() == false {
+		t.Errorf("expect Endof true")
+	}
+	s.(*SimpleScanner).resetcursor()
+	if s.Endof() == true {
+		t.Errorf("expected Endof false")
+	}
+}
+
 func TestSetWSPattern(t *testing.T) {
 	text := []byte(`// comment`)
 	ref := `// comment`
@@ -142,11 +158,72 @@ func TestSetWSPattern(t *testing.T) {
 	}
 }
 
+func TestTrackLineno(t *testing.T) {
+	text := []byte("hello \n  \t \nworld \n\"say\" cheese.")
+	y := OrdChoice(
+		func(nodes []ParsecNode) ParsecNode { return nodes[0] },
+		Token(`\w+`, "WORD"), Atom(`"say"`, "STR"),
+	)
+	scanner := NewScanner(text).TrackLineno()
+
+	node, scanner := y(scanner)
+	if v := node.(*Terminal).Value; v != "hello" {
+		t.Errorf("expected %q, got %q", "hello", v)
+	} else if scanner.Lineno() != 1 {
+		t.Errorf("expected %v, got %v", 1, scanner.Lineno())
+	} else if cursor := scanner.GetCursor(); cursor != 5 {
+		t.Errorf("expected %v, got %v", 5, cursor)
+	}
+
+	node, scanner = y(scanner)
+	if v := node.(*Terminal).Value; v != "world" {
+		t.Errorf("expected %q, got %q", "world", v)
+	} else if scanner.Lineno() != 3 {
+		t.Errorf("expected %v, got %v", 1, scanner.Lineno())
+	} else if cursor := scanner.GetCursor(); cursor != 17 {
+		t.Errorf("expected %v, got %v", 17, cursor)
+	}
+
+	node, scanner = y(scanner)
+	if v := node.(*Terminal).Value; v != `"say"` {
+		t.Errorf("expected %q, got %q", "say", v)
+	} else if scanner.Lineno() != 4 {
+		t.Errorf("expected %v, got %v", 1, scanner.Lineno())
+	} else if cursor := scanner.GetCursor(); cursor != 24 {
+		t.Errorf("expected %v, got %v", 24, cursor)
+	}
+
+	node, scanner = y(scanner)
+	if v := node.(*Terminal).Value; v != "cheese" {
+		t.Errorf("expected %q, got %q", "cheese", v)
+	} else if scanner.Lineno() != 4 {
+		t.Errorf("expected %v, got %v", 1, scanner.Lineno())
+	} else if cursor := scanner.GetCursor(); cursor != 31 {
+		t.Errorf("expected %v, got %v", 31, cursor)
+	}
+}
+
 func BenchmarkSScanClone(b *testing.B) {
 	text := []byte("hello world")
 	s := NewScanner(text)
 	for i := 0; i < b.N; i++ {
 		s.Clone()
+	}
+}
+
+func BenchmarkMatch(b *testing.B) {
+	s := NewScanner([]byte(`hello world`))
+	for i := 0; i < b.N; i++ {
+		s.(*SimpleScanner).resetcursor()
+		s.Match(`hello world`)
+	}
+}
+
+func BenchmarkMatchString(b *testing.B) {
+	s := NewScanner([]byte(`hello world`))
+	for i := 0; i < b.N; i++ {
+		s.(*SimpleScanner).resetcursor()
+		s.MatchString(`hello world`)
 	}
 }
 
@@ -165,21 +242,5 @@ func BenchmarkSScanSkipAny(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		s.SkipAny(`^[ hel]+`)
 		s.(*SimpleScanner).resetcursor()
-	}
-}
-
-func BenchmarkMatch(b *testing.B) {
-	s := NewScanner([]byte(`hello world`))
-	for i := 0; i < b.N; i++ {
-		s.(*SimpleScanner).resetcursor()
-		s.Match(`hello world`)
-	}
-}
-
-func BenchmarkMatchString(b *testing.B) {
-	s := NewScanner([]byte(`hello world`))
-	for i := 0; i < b.N; i++ {
-		s.(*SimpleScanner).resetcursor()
-		s.MatchString(`hello world`)
 	}
 }

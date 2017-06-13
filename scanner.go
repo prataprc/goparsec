@@ -9,6 +9,14 @@ import "strings"
 // Scanner interface supplies necessary methods to match the
 // input stream.
 type Scanner interface {
+	// SetWSPattern to configure white space pattern. Typically used as
+	//		scanner := NewScanner(input).SetWSPattern(" ")
+	SetWSPattern(pattern string) Scanner
+
+	// TrackLineno as cursor moves forward, this can slow down parsing.
+	// Suggested for development/debugging.
+	TrackLineno() Scanner
+
 	// Clone will return new clone of the underlying scanner structure.
 	// This will be used by combinators to _backtrack_.
 	Clone() Scanner
@@ -40,6 +48,9 @@ type Scanner interface {
 	// Returns Scanner and advances the cursor.
 	SkipAny(pattern string) ([]byte, Scanner)
 
+	// Lineno return the current line-number of the cursor.
+	Lineno() int
+
 	// Endof detects whether end-of-file is reached in the input
 	// stream and return a boolean indicating the same.
 	Endof() bool
@@ -70,7 +81,23 @@ func NewScanner(text []byte) Scanner {
 	}
 }
 
-// Clone method receiver in Scanner{} interface.
+//---- Scanner{} interface.
+
+// SetWSPattern to configure white space pattern. Typically used as
+//		scanner := NewScanner(input).SetWSPattern(" ")
+func (s *SimpleScanner) SetWSPattern(pattern string) Scanner {
+	s.wsPattern = pattern
+	return s
+}
+
+// TrackLineno as cursor moves forward, this can slow down parsing. Suggested
+// for development/debugging.
+func (s *SimpleScanner) TrackLineno() Scanner {
+	s.tracklineno = true
+	return s
+}
+
+// Clone implement Scanner{} interface.
 func (s *SimpleScanner) Clone() Scanner {
 	return &SimpleScanner{
 		buf:          s.buf,
@@ -78,20 +105,16 @@ func (s *SimpleScanner) Clone() Scanner {
 		lineno:       s.lineno,
 		patternCache: s.patternCache,
 		wsPattern:    s.wsPattern,
+		tracklineno:  s.tracklineno,
 	}
 }
 
-func (s *SimpleScanner) TrackLineno() *SimpleScanner {
-	s.tracklineno = true
-	return s
-}
-
-// GetCursor method receiver in Scanner{} interface.
+// GetCursor implement Scanner{} interface.
 func (s *SimpleScanner) GetCursor() int {
 	return s.cursor
 }
 
-// Match method receiver in Scanner{} interface.
+// Match implement Scanner{} interface.
 func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	regc := s.getPattern(pattern)
 	if token := regc.Find(s.buf[s.cursor:]); token != nil {
@@ -104,7 +127,7 @@ func (s *SimpleScanner) Match(pattern string) ([]byte, Scanner) {
 	return nil, s
 }
 
-// MatchString method receiver in Scanner{} interface.
+// MatchString implement Scanner{} interface.
 func (s *SimpleScanner) MatchString(str string) (bool, Scanner) {
 	ln := len(str)
 	if len(s.buf[s.cursor:]) < ln {
@@ -119,7 +142,7 @@ func (s *SimpleScanner) MatchString(str string) (bool, Scanner) {
 	return true, s
 }
 
-// SubmatchAll method receiver in Scanner{} interface.
+// SubmatchAll implement Scanner{} interface.
 func (s *SimpleScanner) SubmatchAll(
 	pattern string) (map[string][]byte, Scanner) {
 
@@ -144,12 +167,12 @@ func (s *SimpleScanner) SubmatchAll(
 	return nil, s
 }
 
-// SkipWS method receiver in Scanner{} interface.
+// SkipWS implement Scanner{} interface.
 func (s *SimpleScanner) SkipWS() ([]byte, Scanner) {
 	return s.SkipAny(s.wsPattern)
 }
 
-// SkipAny method receiver in Scanner{} interface.
+// SkipAny implement Scanner{} interface.
 func (s *SimpleScanner) SkipAny(pattern string) ([]byte, Scanner) {
 	if pattern[0] != '^' {
 		pattern = "^" + pattern
@@ -157,16 +180,14 @@ func (s *SimpleScanner) SkipAny(pattern string) ([]byte, Scanner) {
 	return s.Match(pattern)
 }
 
-// Endof method receiver in Scanner{} interface.
-func (s *SimpleScanner) Endof() bool {
-	return s.cursor >= len(s.buf)
+// Lineno implement Scanner{} interface.
+func (s *SimpleScanner) Lineno() int {
+	return s.lineno
 }
 
-// SetWSPattern to configure white space pattern. Typically used as
-//		scanner := NewScanner(input).SetWSPattern(" ")
-func (s *SimpleScanner) SetWSPattern(pattern string) *SimpleScanner {
-	s.wsPattern = pattern
-	return s
+// Endof implement Scanner{} interface.
+func (s *SimpleScanner) Endof() bool {
+	return s.cursor >= len(s.buf)
 }
 
 //---- local methods
