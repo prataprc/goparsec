@@ -15,7 +15,7 @@ This package contains following components,
 * Standard set of combinators, parsing algorithms can create input
   specific combinator functions on top of the standard set.
 * [Regular expression](https://golang.org/pkg/regexp/) based simple-scanner.
-* Standard set of terminal tokens.
+* Standard set of tokenizers.
 
 Quick links
 ===========
