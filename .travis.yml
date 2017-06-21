@@ -16,5 +16,5 @@ script:
   - go get ./...
   - make test
   - go test -run=xxx -test.bench=. -test.benchmem=true ./...
-  - $HOME/gopath/bin/goveralls -service=travis-ci
+  - $HOME/gopath/bin/goveralls -service=travis-ci -package github.com/prataprc/goparsec
   - cd $HOME/gopath/src/github.com/prataprc/monster/testdata; ./checkprods.sh
