@@ -18,7 +18,7 @@ This package contains following components,
 * Standard set of tokenizers.
 
 Quick links
-===========
+-----------
 
 * [List of combinators](#list-of-combinators)
 * [Using the builtin scanner](#using-the-builtin-scanner)
