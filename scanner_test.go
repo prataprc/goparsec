@@ -2,6 +2,7 @@
 
 package parsec
 
+import "bytes"
 import "reflect"
 import "strings"
 import "testing"
@@ -156,6 +157,18 @@ func TestSetWSPattern(t *testing.T) {
 	expcur := 10
 	if s.GetCursor() != expcur {
 		t.Fatalf("expected cursor position %v, got %v", expcur, s.GetCursor())
+	}
+}
+
+func TestSkipWSUnicode(t *testing.T) {
+	text := "\t\n\v\f\r \u0085\u00A0"
+	s := NewScanner([]byte(text)).(*SimpleScanner)
+	out, ss := s.SkipWSUnicode()
+	if ss.Endof() == false {
+		t.Errorf("expected true")
+	}
+	if bytes.Compare(out, []byte(text)) != 0 {
+		t.Errorf("expected %v, got %v", []byte(text), out)
 	}
 }
 
