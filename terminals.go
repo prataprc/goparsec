@@ -175,9 +175,8 @@ func End() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		if s.Endof() {
 			return true, s
-		} else {
-			return nil, s
 		}
+		return nil, s
 	}
 }
 
@@ -187,9 +186,8 @@ func NoEnd() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		if !s.Endof() {
 			return true, s
-		} else {
-			return nil, s
 		}
+		return nil, s
 	}
 }
 

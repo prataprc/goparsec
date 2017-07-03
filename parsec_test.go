@@ -118,7 +118,7 @@ func TestKleene(t *testing.T) {
 
 	y = Kleene(nil, Token("\\w+", "W"), Atom(",", "COMMA"))
 	s = NewScanner([]byte("one,two"))
-	node, s = y(s)
+	node, _ = y(s)
 	if node == nil {
 		t.Errorf("Kleene() didn't match %q", e)
 	} else if len(node.([]ParsecNode)) != 2 {
@@ -132,7 +132,7 @@ func TestForwardReference(t *testing.T) {
 	y := Kleene(nil, Maybe(nil, Token("\\w+", "WORD")), &ycomma)
 	ycomma = Atom(",", "COMMA")
 	s := NewScanner([]byte("one,two,,three"))
-	node, s := y(s)
+	node, _ := y(s)
 	nodes := node.([]ParsecNode)
 	if len(nodes) != 4 {
 		t.Errorf("expected length to be 4")

@@ -43,7 +43,7 @@ type Scanner interface {
 	// Return skipped whitespaces as byte-slice and advance the cursor.
 	SkipWS() ([]byte, Scanner)
 
-	// SkipAny any occurence of the elements of the slice.
+	// SkipAny any occurrence of the elements of the slice.
 	// Equivalent to Match(`(b[0]|b[1]|...|b[n])*`)
 	// Returns Scanner and advances the cursor.
 	SkipAny(pattern string) ([]byte, Scanner)
