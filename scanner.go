@@ -3,6 +3,9 @@
 package parsec
 
 import "regexp"
+import "reflect"
+import "unsafe"
+import "unicode"
 import "bytes"
 import "strings"
 
@@ -172,6 +175,24 @@ func (s *SimpleScanner) SkipWS() ([]byte, Scanner) {
 	return s.SkipAny(s.wsPattern)
 }
 
+// SkipWSUnicode for looping through runes checking for whitespace.
+func (s *SimpleScanner) SkipWSUnicode() ([]byte, Scanner) {
+	for i, r := range bytes2str(s.buf[s.cursor:]) {
+		if unicode.IsSpace(r) {
+			if s.tracklineno && r == '\n' {
+				s.lineno += 1
+			}
+			continue
+		}
+		token := s.buf[s.cursor : s.cursor+i]
+		s.cursor += len(token)
+		return token, s
+	}
+	token := s.buf[s.cursor:]
+	s.cursor += len(token)
+	return token, s
+}
+
 // SkipAny implement Scanner{} interface.
 func (s *SimpleScanner) SkipAny(pattern string) ([]byte, Scanner) {
 	if pattern[0] != '^' {
@@ -207,4 +228,13 @@ func (s *SimpleScanner) getPattern(pattern string) *regexp.Regexp {
 
 func (s *SimpleScanner) resetcursor() {
 	s.cursor = 0
+}
+
+func bytes2str(bytes []byte) string {
+	if bytes == nil {
+		return ""
+	}
+	sl := (*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	st := &reflect.StringHeader{Data: sl.Data, Len: sl.Len}
+	return *(*string)(unsafe.Pointer(st))
 }
