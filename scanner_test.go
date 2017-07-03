@@ -3,6 +3,7 @@
 package parsec
 
 import "reflect"
+import "strings"
 import "testing"
 import "fmt"
 
@@ -200,6 +201,22 @@ func TestTrackLineno(t *testing.T) {
 		t.Errorf("expected %v, got %v", 1, scanner.Lineno())
 	} else if cursor := scanner.GetCursor(); cursor != 31 {
 		t.Errorf("expected %v, got %v", 31, cursor)
+	}
+}
+
+func TestUnicode(t *testing.T) {
+	text := "号分隔值, 逗号分隔值"
+	ytok := TokenExact(`[^,]+`, "FIELD")
+	y := Many(nil, ytok, Atom(",", "COMMA"))
+	s := NewScanner([]byte(text))
+	node, _ := y(s)
+	nodes := node.([]ParsecNode)
+	n1, n2 := nodes[0].(*Terminal), nodes[1].(*Terminal)
+	parts := strings.Split(text, ",")
+	if parts[0] != string(n1.Value) {
+		t.Errorf("expected %s, got %s", parts[0], n1.Value)
+	} else if parts[1] != string(n2.Value) {
+		t.Errorf("expected %s, got %s", parts[1], n2.Value)
 	}
 }
 
