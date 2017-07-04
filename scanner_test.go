@@ -161,9 +161,20 @@ func TestSetWSPattern(t *testing.T) {
 }
 
 func TestSkipWSUnicode(t *testing.T) {
-	text := "\t\n\v\f\r \u0085\u00A0"
-	s := NewScanner([]byte(text)).(*SimpleScanner)
-	out, ss := s.SkipWSUnicode()
+	text := "\t\n\v\f\r \u0085\u00A0hello"
+	s := NewScanner([]byte(text)).(*SimpleScanner).TrackLineno()
+	out, ss := s.(*SimpleScanner).SkipWSUnicode()
+	if ss.Endof() == true {
+		t.Errorf("expected false")
+	}
+	if bytes.Compare(out, []byte(text[:10])) != 0 {
+		t.Errorf("expected %v, got %v", []byte(text), out)
+	}
+
+	// full match
+	text = "\t\n\v\f\r \u0085\u00A0"
+	s = NewScanner([]byte(text)).(*SimpleScanner)
+	out, ss = s.(*SimpleScanner).SkipWSUnicode()
 	if ss.Endof() == false {
 		t.Errorf("expected true")
 	}
