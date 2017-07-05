@@ -26,16 +26,12 @@ import "fmt"
 // ParsecNode type defines a node in the AST
 type ParsecNode interface{}
 
-// MaybeNone place holder type used be Maybe combinator if parser does not
-// match the input text.
-type MaybeNone string
-
 // Parser function parses input text, higher order parsers are
 // constructed using combinators.
 type Parser func(Scanner) (ParsecNode, Scanner)
 
 // Nodify callback function to construct custom ParsecNode. Even when
-// combinators line AND, OR, MANY etc.. match the input string, it is
+// combinators line And, OrdChoice, Many etc.. match input string, it is
 // possible to fail them via nodify callback function, by returning nil.
 // This very useful in cases like:
 //
@@ -46,22 +42,6 @@ type Parser func(Scanner) (ParsecNode, Scanner)
 // value from Nodify callback.
 type Nodify func([]ParsecNode) ParsecNode
 
-// Terminal structure can be used to construct a terminal
-// ParsecNode.
-type Terminal struct {
-	Name     string // contains terminal's token type
-	Value    string // value of the terminal
-	Position int    // Offset into the text stream where token was identified
-}
-
-// NonTerminal structure can be used to construct a
-// non-terminal ParsecNode.
-type NonTerminal struct {
-	Name     string       // contains terminal's token type
-	Value    string       // value of the terminal
-	Children []ParsecNode // list of children to this node.
-}
-
 // And combinator accepts a list of `Parser`, or reference to a
 // parser, that must match the input string, atleast until the
 // last Parser argument. Returns a parser function that
@@ -70,8 +50,7 @@ type NonTerminal struct {
 // If all parser matches, a list of ParsecNode, where each
 // ParsecNode is constructed by matching parser, will be passed
 // as argument to Nodify callback. Even if one of the input
-// parser function fails then empty slice of ParsecNode will
-// be supplied as argument to Nodify callback.
+// parser function fails, And will fail without consuming the input.
 func And(callb Nodify, parsers ...interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		var ns = make([]ParsecNode, 0, len(parsers))
@@ -97,8 +76,9 @@ func And(callb Nodify, parsers ...interface{}) Parser {
 // that can be used to construct higher level parsers.
 //
 // The first matching parser function's output is passed
-// as argument to Nodify callback. If non of the parsers
-// match the input, then `nil` is returned for ParsecNode
+// as argument to Nodify callback. If none of the parsers
+// match the input, then OrdChoice will fail without consuming
+// the input.
 func OrdChoice(callb Nodify, parsers ...interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		for _, parser := range parsers {
@@ -127,8 +107,9 @@ func OrdChoice(callb Nodify, parsers ...interface{}) Parser {
 // For every successful match of opScan, the returned
 // ParsecNode from matching parser will be accumulated and
 // passed as argument to Nodify callback. If there is not a
-// single match for opScan, then an empty slice of ParsecNode
-// will be passed as argument to Nodify callback.
+// single match for opScan, then []ParsecNode of ZERO length
+// will be passed as argument to Nodify callback. Kleene
+// combinator will never fail.
 func Kleene(callb Nodify, parsers ...interface{}) Parser {
 	var opScan, sepScan interface{}
 	switch l := len(parsers); l {
@@ -176,8 +157,8 @@ func Kleene(callb Nodify, parsers ...interface{}) Parser {
 // For every successful match of opScan, the returned
 // ParsecNode from matching parser will be accumulated and
 // passed as argument to Nodify callback. If there is not a
-// single match for opScan, then `nil` will be returned for
-// ParsecNode.
+// single match for opScan, then Many will fail without
+// consuming the input.
 func Many(callb Nodify, parsers ...interface{}) Parser {
 	var opScan, sepScan interface{}
 	switch l := len(parsers); l {
@@ -227,8 +208,8 @@ func Many(callb Nodify, parsers ...interface{}) Parser {
 // For every successful match of opScan, the returned
 // ParsecNode from matching parser will be accumulated and
 // passed as argument to Nodify callback. If there is not a
-// single match for opScan, then `nil` will be returned for
-// ParsecNode.
+// single match for opScan, then ManyUntil will fail without
+// consuming the input.
 func ManyUntil(callb Nodify, parsers ...interface{}) Parser {
 	var opScan, sepScan, untilScan interface{}
 	switch l := len(parsers); l {
@@ -268,7 +249,8 @@ func ManyUntil(callb Nodify, parsers ...interface{}) Parser {
 }
 
 // Maybe combinator accepts a single parser, or reference to
-// a parser, and tries to match the input stream with it.
+// a parser, and tries to match the input stream with it. If
+// parser fails to match the input, returns MaybeNone.
 func Maybe(callb Nodify, parser interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		n, news := doParse(parser, s.Clone())

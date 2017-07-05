@@ -16,15 +16,24 @@ This package contains following components,
   specific combinator functions on top of the standard set.
 * [Regular expression](https://golang.org/pkg/regexp/) based simple-scanner.
 * Standard set of tokenizers.
+* To construct syntax-trees based on detailed grammar try with
+  [AST struct](http://godoc.org/github.com/prataprc/goparsec#ParsecNode).
+  * Standard set of combinators are exported as methods to AST.
+  * Generate dot-graph.
+  * Pretty print on the console.
+  * Make debugging easier.
+
+**NOTE that AST is a recent development and expect user to adapt to newer
+versions**
 
 Quick links
 -----------
 
-* [List of combinators](#list-of-combinators)
-* [Using the builtin scanner](#using-the-builtin-scanner)
-* [Projects using goparsec](#projects-using-goparsec)
-* [Articles](#articles)
-* [How to contribute](#how-to-contribute)
+* [List of combinators](#list-of-combinators).
+* [Using the builtin scanner](#using-the-builtin-scanner).
+* [Projects using goparsec](#projects-using-goparsec).
+* [Articles](#articles).
+* [How to contribute](#how-to-contribute).
 
 Combinators
 -----------
@@ -74,6 +83,20 @@ We can see that a new instance of ``s`` is passed to each ``parser`` and when on
 of the parser returns failure (where n==nil), it simply returns the scanner
 without consuming any tokens. Otherwise, it returns the new-scanner ``news``
 returned by the last parser.
+
+If the intermediate nodes are created by the Combinators then it will be of
+the following types:
+
+* **And** combinator, by default, return []ParsecNode, with arity of array
+  equal to number parsers supplied to the combinator.
+* **OrdChoice** combinator, by default, return []ParsecNode with arith of
+  array as one.
+* **Kleene** combinator, by default, return []ParsecNode with arity >= 0. Note
+  that even if arity is ZERO Kleene combinator succeeds, this can be a common
+  pitfall.
+* **Many** combinator, by default, return []ParsecNode with arity > 0.
+* **ManyUntil** combinator, by default, return []ParsecNode with arity > 0.
+* **Maybe**, combinators, by default, return ParsecNode.
 
 List of combinators
 ===================

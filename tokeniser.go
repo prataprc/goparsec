@@ -15,7 +15,8 @@ import "unicode/utf16"
 
 var _ = fmt.Sprintf("dummy")
 
-// String parse double quoted string in input text.
+// String parse double quoted string in input text, this parser is
+// incompatible with AST{}.
 func String() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		s.SkipWS()
@@ -171,6 +172,7 @@ func OrdTokens(patterns []string, names []string) Parser {
 }
 
 // End is a parser function to detect end of scanner output.
+// Parser is not compatible with AST{}.
 func End() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		if s.Endof() {
@@ -181,7 +183,7 @@ func End() Parser {
 }
 
 // NoEnd is a parser function to detect not-an-end of
-// scanner output.
+// scanner output. Parser is not compatible with AST{}.
 func NoEnd() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		if !s.Endof() {
