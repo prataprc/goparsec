@@ -2,6 +2,8 @@
 
 package parsec
 
+import "io"
+import "os"
 import "fmt"
 import "errors"
 
@@ -297,6 +299,15 @@ func (ast *AST) GetValue() string {
 	return ast.root.GetValue()
 }
 
+// Prettyprint to standard output the syntax-tree in human readable plain
+// text.
+func (ast *AST) Prettyprint() {
+	if ast.root == nil {
+		fmt.Println("root is nil")
+	}
+	ast.prettyprint(os.Stdout, "", ast.root)
+}
+
 //---- local functions
 
 func (ast *AST) doParse(
@@ -332,6 +343,7 @@ func (ast *AST) docallback(
 func (ast *AST) getnt(name string) (node *NonTerminal) {
 	select {
 	case node = <-ast.ntpool:
+		node.Name = name
 	default:
 		node = &NonTerminal{Name: name, Children: make([]Queryable, 0)}
 	}
@@ -355,4 +367,16 @@ func (ast *AST) trydebug(
 		fmt.Printf(fmsg, ytype, name, poff, s.Lineno(), s.GetCursor(), match)
 	}
 	return node, s
+}
+
+func (ast *AST) prettyprint(w io.Writer, prefix string, node Queryable) {
+	if node.IsTerminal() {
+		fmt.Fprintf(w, "%v*%v: %q\n", prefix, node.GetName(), node.GetValue())
+		return
+	} else {
+		fmt.Fprintf(w, "%v%v @ %v\n", prefix, node.GetName(), node.GetPosition())
+		for _, child := range node.GetChildren() {
+			ast.prettyprint(w, prefix+"  ", child)
+		}
+	}
 }

@@ -1,0 +1,55 @@
+tag @ 0
+  tagstart @ 0
+    *OT: "<"
+    *TAG: "html"
+    attributes @ 0
+    *CT: ">"
+  elements @ 6
+    *TEXT: "\n    "
+    tag @ 11
+      tagstart @ 11
+        *OT: "<"
+        *TAG: "body"
+        attributes @ 0
+        *CT: ">"
+      elements @ 17
+        *TEXT: "\n        "
+        tag @ 26
+          tagstart @ 26
+            *OT: "<"
+            *TAG: "h1"
+            attributes @ 0
+            *CT: ">"
+          elements @ 30
+            *TEXT: "My First Heading"
+          tagend @ 46
+            *OT: "<"
+            *SLASH: "/"
+            *TAG: "h1"
+            *CT: ">"
+        *TEXT: "\n        "
+        tag @ 60
+          tagstart @ 60
+            *OT: "<"
+            *TAG: "p"
+            attributes @ 0
+            *CT: ">"
+          elements @ 63
+            *TEXT: "My first paragraph."
+          tagend @ 82
+            *OT: "<"
+            *SLASH: "/"
+            *TAG: "p"
+            *CT: ">"
+        *TEXT: "\n    "
+      tagend @ 91
+        *OT: "<"
+        *SLASH: "/"
+        *TAG: "body"
+        *CT: ">"
+    *TEXT: "\n"
+  tagend @ 99
+    *OT: "<"
+    *SLASH: "/"
+    *TAG: "html"
+    *CT: ">"

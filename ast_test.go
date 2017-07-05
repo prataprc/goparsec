@@ -382,6 +382,31 @@ func TestGetValue(t *testing.T) {
 	}
 }
 
+func TestPrettyprint(t *testing.T) {
+	data, err := ioutil.ReadFile("testdata/simple.html")
+	if err != nil {
+		t.Error(err)
+	}
+	data = bytes.Trim(data, " \t\r\n")
+
+	ref, err := ioutil.ReadFile("testdata/simple.out")
+	if err != nil {
+		t.Error(err)
+	}
+
+	ast := NewAST("html", 100)
+	y := makehtmly(ast)
+	s := NewScanner(data).TrackLineno()
+	ast.Parsewith(y, s)
+	buf := bytes.NewBuffer(make([]byte, 0, 1024))
+	ast.prettyprint(buf, "", ast.root)
+	out := string(buf.Bytes())
+	if string(ref) != out {
+		t.Errorf("expected %v", ref)
+		t.Errorf("got %v", out)
+	}
+}
+
 func makehtmly(ast *AST) Parser {
 	var tag Parser
 
@@ -392,7 +417,7 @@ func makehtmly(ast *AST) Parser {
 	tagname := TokenExact("[a-z][a-zA-Z0-9]*", "TAG")
 	attrkey := TokenExact("[a-z][a-zA-Z0-9]*", "ATTRK")
 	text := TokenExact("[^<>]+", "TEXT")
-	ws := TokenExact("[ \t]+", "TEXT")
+	ws := TokenExact("[ \t]+", "WS")
 
 	element := ast.OrdChoice("element", nil, text, &tag)
 	elements := ast.Kleene("elements", nil, element)
