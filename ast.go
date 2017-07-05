@@ -21,7 +21,7 @@ type Queryable interface {
 	// GetChildren relevant only for NonTerminal node.
 	GetChildren() []Queryable
 
-	// GetPosition relevant only for Terminal node.
+	// GetPosition of the first terminal value in input.
 	GetPosition() int
 }
 
@@ -44,6 +44,7 @@ type AST struct {
 	y      Parser
 	root   Queryable
 	ntpool chan *NonTerminal
+	debug  bool
 }
 
 // NewAST return a new instance of AST, maxnodes is size of internal buffer
@@ -51,6 +52,13 @@ type AST struct {
 // expect in the syntax-tree.
 func NewAST(name string, maxnodes int) *AST {
 	return &AST{name: name, ntpool: make(chan *NonTerminal, maxnodes)}
+}
+
+// Debug enables console logging while parsing the input test, this is
+// useful while developing a parser.
+func (ast *AST) SetDebug() *AST {
+	ast.debug = true
+	return ast
 }
 
 // Parsewith execute the root parser, y, with scanner s. AST will remember the
@@ -93,20 +101,22 @@ func (ast *AST) And(name string, callb ASTNodify, parsers ...interface{}) Parser
 		var node ParsecNode
 		var err error
 		nt, news := ast.getnt(name), s.Clone()
-		for _, parser := range parsers {
+		for i, parser := range parsers {
 			if node, news, err = ast.doParse(parser, news); err != nil {
-				panic(fmt.Errorf("while parsing %q: %v", name, err))
+				fmsg := "while parsing %vth in %q: %v"
+				panic(fmt.Errorf(fmsg, i+1, name, err))
 			} else if node == nil {
 				ast.putnt(nt)
-				return nil, s
+				return ast.trydebug(nil, s, "And", name, i+1, false)
 			}
+			ast.trydebug(node, news, "And", name, i+1, true)
 			nt.Children = append(nt.Children, node.(Queryable))
 		}
 		if q := ast.docallback(name, callb, nt); q != nil {
-			return q, news
+			return ast.trydebug(q, news, "And", name, -1, true)
 		}
 		ast.putnt(nt)
-		return nil, s
+		return ast.trydebug(nil, s, "And", name, -1, "skip")
 	}
 }
 
@@ -115,17 +125,19 @@ func (ast *AST) OrdChoice(
 	name string, callb ASTNodify, parsers ...interface{}) Parser {
 
 	return func(s Scanner) (ParsecNode, Scanner) {
-		for _, parser := range parsers {
+		for i, parser := range parsers {
 			news := s.Clone()
 			if n, news, err := ast.doParse(parser, news); err != nil {
-				panic(fmt.Errorf("while parsing %q: %v", name, err))
+				fmsg := "while parsing %vth for %q: %v"
+				panic(fmt.Errorf(fmsg, i+1, name, err))
 			} else if n != nil {
 				if q := ast.docallback(name, callb, n.(Queryable)); q != nil {
-					return q, news
+					return ast.trydebug(q, news, "OrdChoice", name, i+1, true)
 				}
+				return ast.trydebug(nil, s, "OrdChoice", name, i+1, "skip")
 			}
 		}
-		return nil, s
+		return ast.trydebug(nil, s, "OrdChoice", name, -1, false)
 	}
 }
 
@@ -326,4 +338,15 @@ func (ast *AST) putnt(node *NonTerminal) {
 	case ast.ntpool <- node:
 	default: // node shall be collected by GC.
 	}
+}
+
+func (ast *AST) trydebug(
+	node ParsecNode, s Scanner,
+	ytype, name string, poff int, match interface{}) (ParsecNode, Scanner) {
+
+	fmsg := "%v(%v) parser:%v Lineno:%v off:%v match:%v\n"
+	if ast.debug {
+		fmt.Printf(fmsg, ytype, name, poff, s.Lineno(), s.GetCursor(), match)
+	}
+	return node, s
 }
