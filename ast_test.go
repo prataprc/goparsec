@@ -1,7 +1,9 @@
 package parsec
 
 import "fmt"
+import "bytes"
 import "testing"
+import "io/ioutil"
 
 var _ = fmt.Sprintf("dummy")
 
@@ -362,4 +364,43 @@ func TestASTForwardReference(t *testing.T) {
 	if node != MaybeNone("missing") {
 		t.Errorf("expected %v, got %v", node, MaybeNone("missing"))
 	}
+}
+
+func TestGetValue(t *testing.T) {
+	data, err := ioutil.ReadFile("testdata/simple.html")
+	if err != nil {
+		t.Error(err)
+	}
+	data = bytes.Trim(data, " \t\r\n")
+	ast := NewAST("html", 100)
+	y := makehtmly(ast)
+	s := NewScanner(data).TrackLineno()
+	node, _ := ast.Parsewith(y, s)
+	if node.GetValue() != string(data) {
+		t.Errorf("expected %q", string(data))
+		t.Errorf("got %q", node.GetValue())
+	}
+}
+
+func makehtmly(ast *AST) Parser {
+	var tag Parser
+
+	opentag := AtomExact("<", "OT")
+	closetag := AtomExact(">", "CT")
+	equal := AtomExact("=", "EQUAL")
+	slash := TokenExact("/[ \t]*", "SLASH")
+	tagname := TokenExact("[a-z][a-zA-Z0-9]*", "TAG")
+	attrkey := TokenExact("[a-z][a-zA-Z0-9]*", "ATTRK")
+	text := TokenExact("[^<>]+", "TEXT")
+	ws := TokenExact("[ \t]+", "TEXT")
+
+	element := ast.OrdChoice("element", nil, text, &tag)
+	elements := ast.Kleene("elements", nil, element)
+	attr := ast.And("attribute", nil, attrkey, equal, String())
+	attrws := ast.And("attrws", nil, attr, ast.Maybe("ws", nil, ws))
+	attrs := ast.Kleene("attributes", nil, attrws)
+	tstart := ast.And("tagstart", nil, opentag, tagname, attrs, closetag)
+	tend := ast.And("tagend", nil, opentag, slash, tagname, closetag)
+	tag = ast.And("tag", nil, tstart, elements, tend)
+	return tag
 }

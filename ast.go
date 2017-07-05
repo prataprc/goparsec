@@ -291,6 +291,12 @@ func (ast *AST) Maybe(name string, callb ASTNodify, parser interface{}) Parser {
 	}
 }
 
+// GetValue return the full text, called as value here, that was parsed
+// to contruct this syntax-tree.
+func (ast *AST) GetValue() string {
+	return ast.root.GetValue()
+}
+
 //---- local functions
 
 func (ast *AST) doParse(
