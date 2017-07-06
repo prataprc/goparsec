@@ -17,14 +17,15 @@ This package contains following components,
 * [Regular expression](https://golang.org/pkg/regexp/) based simple-scanner.
 * Standard set of tokenizers.
 * To construct syntax-trees based on detailed grammar try with
-  [AST struct](http://godoc.org/github.com/prataprc/goparsec#ParsecNode).
+  [AST struct](http://godoc.org/github.com/prataprc/goparsec#AST).
   * Standard set of combinators are exported as methods to AST.
-  * Generate dot-graph.
+  * Generate dot-graph EG: [dotfile](testdata/simple.dot)
+  for [html](testdata/simple.html).
   * Pretty print on the console.
   * Make debugging easier.
 
-**NOTE that AST is a recent development and expect user to adapt to newer
-versions**
+**NOTE that AST object is a recent development and expect user to adapt to
+newer versions**
 
 Quick links
 -----------
@@ -241,7 +242,6 @@ Simple html parser
 func makehtmly(ast *AST) Parser {
 	var tag Parser
 
-    // terminals
 	opentag := AtomExact("<", "OT")
 	closetag := AtomExact(">", "CT")
 	equal := AtomExact("=", "EQUAL")
@@ -249,9 +249,8 @@ func makehtmly(ast *AST) Parser {
 	tagname := TokenExact("[a-z][a-zA-Z0-9]*", "TAG")
 	attrkey := TokenExact("[a-z][a-zA-Z0-9]*", "ATTRK")
 	text := TokenExact("[^<>]+", "TEXT")
-	ws := TokenExact("[ \t]+", "TEXT")
+	ws := TokenExact("[ \t]+", "WS")
 
-    // non-terminals
 	element := ast.OrdChoice("element", nil, text, &tag)
 	elements := ast.Kleene("elements", nil, element)
 	attr := ast.And("attribute", nil, attrkey, equal, String())
