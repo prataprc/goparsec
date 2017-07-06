@@ -5,6 +5,8 @@ package parsec
 import "io"
 import "os"
 import "fmt"
+import "sort"
+import "strings"
 import "errors"
 
 // Queryable interface to be implemented by all nodes,
@@ -308,6 +310,10 @@ func (ast *AST) Prettyprint() {
 	ast.prettyprint(os.Stdout, "", ast.root)
 }
 
+func (ast *AST) Dotstring(name string) string {
+	return ast.dottext(name)
+}
+
 //---- local functions
 
 func (ast *AST) doParse(
@@ -379,4 +385,63 @@ func (ast *AST) prettyprint(w io.Writer, prefix string, node Queryable) {
 			ast.prettyprint(w, prefix+"  ", child)
 		}
 	}
+}
+
+type tnode map[int]string
+
+func (ast *AST) dottext(name string) string {
+	lines := []string{
+		fmt.Sprintf("digraph %v {", name),
+		fmt.Sprintf("  nodesep=0.3;"),
+		fmt.Sprintf("  ranksep=0.2;"),
+		fmt.Sprintf("  margin=0.1;"),
+		fmt.Sprintf("  edge [arrowsize=0.8];"),
+	}
+	nodesi, nodesk := make(tnode), make(tnode)
+	edges, nodesi, nodesk, _ :=
+		ast.dotline(0, 1, ast.root, []string{}, nodesi, nodesk)
+	lines = append(lines, edges...)
+	for _, node := range sortnodes(nodesi) {
+		label := nodesi[node]
+		s := fmt.Sprintf(`  %v [shape=ellipse,label=%q];`, node, label)
+		lines = append(lines, s)
+	}
+	for _, node := range sortnodes(nodesk) {
+		label := nodesk[node]
+		t := `  %v [shape=ellipse,style=filled,fillcolor=grey,label=%q];`
+		lines = append(lines, fmt.Sprintf(t, node, label))
+	}
+	lines = append(lines, "}")
+	return strings.Join(lines, "\n")
+}
+
+func (ast *AST) dotline(
+	parid, nextid int, node Queryable,
+	edges []string,
+	nodesi, nodesk tnode) ([]string, tnode, tnode, int) {
+
+	nodeid, nextid := nextid, nextid+1
+	if node.IsTerminal() {
+		name, edge := node.GetName(), fmt.Sprintf("  %v -> %v;", parid, nodeid)
+		edges = append(edges, edge)
+		nodesk[nodeid] = fmt.Sprintf("%v: %q", name, node.GetValue())
+		return edges, nodesi, nodesk, nextid
+	}
+	edge := fmt.Sprintf("  %v -> %v;", parid, nodeid)
+	edges = append(edges, edge)
+	nodesi[nodeid] = node.GetName()
+	for _, child := range node.GetChildren() {
+		edges, nodesi, nodesk, nextid =
+			ast.dotline(nodeid, nextid, child, edges, nodesi, nodesk)
+	}
+	return edges, nodesi, nodesk, nextid
+}
+
+func sortnodes(ns tnode) []int {
+	ints := []int{}
+	for i := range ns {
+		ints = append(ints, i)
+	}
+	sort.Ints(ints)
+	return ints
 }

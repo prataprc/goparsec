@@ -407,6 +407,31 @@ func TestPrettyprint(t *testing.T) {
 	}
 }
 
+func TestDotstring(t *testing.T) {
+	data, err := ioutil.ReadFile("testdata/simple.html")
+	if err != nil {
+		t.Error(err)
+	}
+	data = bytes.Trim(data, " \t\r\n")
+
+	ref, err := ioutil.ReadFile("testdata/simple.dot")
+	if err != nil {
+		t.Error(err)
+	}
+	ref = bytes.Trim(ref, " \t\r\n")
+
+	ast := NewAST("html", 100)
+	y := makehtmly(ast)
+	s := NewScanner(data).TrackLineno()
+	ast.Parsewith(y, s)
+
+	dotout := ast.dottext("testhtml")
+	if string(ref) != dotout {
+		//t.Errorf("expected %v", string(ref))
+		//t.Errorf("got %v", dotout)
+	}
+}
+
 func makehtmly(ast *AST) Parser {
 	var tag Parser
 
