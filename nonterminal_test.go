@@ -1,5 +1,6 @@
 package parsec
 
+import "reflect"
 import "testing"
 
 func TestNonTerminal(t *testing.T) {
@@ -21,5 +22,18 @@ func TestNonTerminal(t *testing.T) {
 		t.Errorf("expected %v, got %v", mn, cs[0])
 	} else if nt.GetPosition() != -1 {
 		t.Errorf("expected %v, got %v", -1, nt.GetPosition())
+	}
+	// check attribute methods.
+	nt.SetAttribute("name", "one").SetAttribute("name", "two")
+	nt.SetAttribute("key", "one")
+	ref1 := []string{"one", "two"}
+	ref2 := map[string][]string{
+		"name": []string{"one", "two"},
+		"key":  []string{"one"},
+	}
+	if x := nt.GetAttribute("name"); reflect.DeepEqual(x, ref1) == false {
+		t.Errorf("expected %v, got %v", ref1, x)
+	} else if x := nt.GetAttributes(); reflect.DeepEqual(x, ref2) == false {
+		t.Errorf("expected %v, got %v", ref2, x)
 	}
 }

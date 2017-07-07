@@ -3,9 +3,10 @@ package parsec
 // Terminal structure can be used to construct a terminal
 // ParsecNode.
 type Terminal struct {
-	Name     string // contains terminal's token type
-	Value    string // value of the terminal
-	Position int    // Offset into the text stream where token was identified
+	Name       string // contains terminal's token type
+	Value      string // value of the terminal
+	Position   int    // Offset into the text stream where token was identified
+	Attributes map[string][]string
 }
 
 // GetName implement Queryable interface.
@@ -31,6 +32,35 @@ func (t *Terminal) GetChildren() []Queryable {
 // GetPosition implement Queryable interface.
 func (t *Terminal) GetPosition() int {
 	return t.Position
+}
+
+// SetAttribute implement Queryable interface.
+func (t *Terminal) SetAttribute(attrname, value string) Queryable {
+	if t.Attributes == nil {
+		t.Attributes = make(map[string][]string)
+	}
+	values, ok := t.Attributes[attrname]
+	if ok == false {
+		values = []string{}
+	}
+	values = append(values, value)
+	t.Attributes[attrname] = values
+	return t
+}
+
+// GetAttribute implement Queryable interface.
+func (t *Terminal) GetAttribute(attrname string) []string {
+	if t.Attributes == nil {
+		return nil
+	} else if values, ok := t.Attributes[attrname]; ok {
+		return values
+	}
+	return nil
+}
+
+// GetAttributes implement Queryable interface.
+func (t *Terminal) GetAttributes() map[string][]string {
+	return t.Attributes
 }
 
 // MaybeNone place holder type used be Maybe combinator if parser does not
@@ -62,4 +92,19 @@ func (mn MaybeNone) GetChildren() []Queryable {
 // GetPosition implement Queryable interface.
 func (mn MaybeNone) GetPosition() int {
 	return -1
+}
+
+// SetAttribute implement Queryable interface.
+func (mn MaybeNone) SetAttribute(attrname, value string) Queryable {
+	return mn
+}
+
+// GetAttribute implement Queryable interface.
+func (mn MaybeNone) GetAttribute(attrname string) []string {
+	return nil
+}
+
+// GetAttributes implement Queryable interface.
+func (mn MaybeNone) GetAttributes() map[string][]string {
+	return nil
 }

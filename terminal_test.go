@@ -1,5 +1,6 @@
 package parsec
 
+import "reflect"
 import "testing"
 
 func TestTerminal(t *testing.T) {
@@ -15,6 +16,19 @@ func TestTerminal(t *testing.T) {
 	} else if term.GetPosition() != 2 {
 		t.Errorf("expected %v, got %v", 2, term.GetPosition())
 	}
+	// check attribute methods.
+	term.SetAttribute("name", "one").SetAttribute("name", "two")
+	term.SetAttribute("key", "one")
+	ref1 := []string{"one", "two"}
+	ref2 := map[string][]string{
+		"name": []string{"one", "two"},
+		"key":  []string{"one"},
+	}
+	if x := term.GetAttribute("name"); reflect.DeepEqual(x, ref1) == false {
+		t.Errorf("expected %v, got %v", ref1, x)
+	} else if x := term.GetAttributes(); reflect.DeepEqual(x, ref2) == false {
+		t.Errorf("expected %v, got %v", ref2, x)
+	}
 }
 
 func TestMaybeNone(t *testing.T) {
@@ -29,5 +43,13 @@ func TestMaybeNone(t *testing.T) {
 		t.Errorf("expected nil")
 	} else if mn.GetPosition() != -1 {
 		t.Errorf("expected %v, got %v", -1, mn.GetPosition())
+	}
+	// check attribute methods.
+	mn.SetAttribute("name", "one").SetAttribute("name", "two")
+	mn.SetAttribute("key", "one")
+	if x := mn.GetAttribute("name"); x != nil {
+		t.Errorf("unexpected %v", x)
+	} else if x := mn.GetAttributes(); x != nil {
+		t.Errorf("unexpected %v", x)
 	}
 }

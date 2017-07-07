@@ -27,6 +27,17 @@ type Queryable interface {
 
 	// GetPosition of the first terminal value in input.
 	GetPosition() int
+
+	// SetAttribute with a value string, can be called multiple times for the
+	// same attrname.
+	SetAttribute(attrname, value string) Queryable
+
+	// GetAttribute for attrname, since more than one value can be set on the
+	// attribute, return a slice of values.
+	GetAttribute(attrname string) []string
+
+	// GetAttributes return a map of all attributes set on this node.
+	GetAttributes() map[string][]string
 }
 
 // ASTNodify callback function to construct custom Queryable. Even when
