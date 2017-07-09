@@ -46,13 +46,15 @@ The first argument to the `And` combinator is the name of this parser.
 And all intermediate-nodes constructed using this parser will be named
 as `TAGSTART`.
 
-**Node names are case-insensitive, that is, replacing `equal` with
-`EQUAL` in the selector string won't change the meaning of selection
-logic**
+**Node names are case-insensitive, should begin with english alphabet,
+and contain only alphnanumeric characters.**
 
 Second aspect is `attributes`. Other than `class` and `value` attributes
 all other attributes are user-attributes that needs to be set
 programmatically. By the way, attribute names are case-insensitive.
+
+**Node attributes are case-insensitive, should begin with english alphabet,
+and contain only alphnanumeric characters.**
 
 Default attributes
 ------------------
@@ -89,10 +91,11 @@ GetAttribute(attrname string) []string
 GetAttributes() map[string][]string
 ```
 
-Above APIs use golang-syntax, in-general these are applicable to any
+* Above APIs use golang-syntax, in-general these are applicable to any
 language.
-
-Among the user-attributes **id attribute** is treated as special because,
+* Value string should not contain white-space, if it does, then entire
+value should be within single-quote or double-quote.
+* Among the user-attributes **id attribute** is treated as special because,
 like class, there is a short-hand notation for id.
 
 Selector syntax
@@ -102,6 +105,9 @@ Once we are comfortable with the concepts of: `syntax-tree`, `leaf-node`,
 `intermediate-node`, `name`, `attributes`, `value`, and `class`, we can
 start specifying the `selectors` syntax which is mostly same as
 CSS-Selectors.
+
+`class` and `id` attribute value should start with english character, and
+contain - alphabets, numbers, hyphen and underscore.
 
 **Note that node-name is equivalent to html tag-name**
 
@@ -115,10 +121,10 @@ Selector              | Example               | Description
 *                     | *                     | Selects all nodes.
 node,                 | comma                 | Selects all `comma` nodes.
 node, node            | comma, equal          | Selects all `comma` nodes and
-                      |                       | all `equal` nodesj.
+                      |                       | all `equal` nodes.
 node node             | attr equal            | Selects all `equal` nodes inside
                       |                       | `attr`.
-node > node      	  | tag > tagname         | Selects all `tagname` node where
+node > node           | tag > tagname         | Selects all `tagname` node where
                       |                       | the parent is a `tag` node.
 node + node           | oanglebrkt + tagname  | Selects all `tagname` node that
                       |                       | are placed immediately after
@@ -128,7 +134,7 @@ node ~ node           | tagname ~ canglebrkt  | Selects every `tagname` node tha
 [attribute]           | [ignore]              | Selects all nodes with a
                       |                       | ignore attribute.
 [attribute=value]     | [title=xyz]           | Selects all nodes whose `title`
-                      |                       |  attribute value is `xyz`.
+                      |                       | attribute value is `xyz`.
 [attribute~=value]    | [title~=flower]       | Selects all nodes with a `title`
                       |                       | attribute containing the word
                       |                       | `flower`.
