@@ -350,7 +350,7 @@ func TestASTForwardReference(t *testing.T) {
 	if node.GetValue() != "onetwothree" {
 		t.Errorf("unexpected: %v", node.GetValue())
 	} else if _, ok := node.GetChildren()[2].(MaybeNone); ok == false {
-		t.Errorf("expected MissingNone")
+		t.Errorf("expected MaybeNone")
 	}
 	ast.Reset()
 

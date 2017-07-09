@@ -239,7 +239,7 @@ func TestForwardReference(t *testing.T) {
 	if len(nodes) != 4 {
 		t.Errorf("expected length to be 4")
 	} else if _, ok := nodes[2].(MaybeNone); ok == false {
-		t.Errorf("expected MissingNone")
+		t.Errorf("expected MaybeNone")
 	}
 
 	// nil return
