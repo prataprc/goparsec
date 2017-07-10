@@ -307,6 +307,16 @@ func (ast *AST) Maybe(name string, callb ASTNodify, parser interface{}) Parser {
 	}
 }
 
+// End is a parser function to detect end of scanner output.
+func (ast *AST) End(name string) Parser {
+	return func(s Scanner) (ParsecNode, Scanner) {
+		if s.Endof() {
+			return &Terminal{Name: name, Position: s.GetCursor()}, s
+		}
+		return nil, s
+	}
+}
+
 // GetValue return the full text, called as value here, that was parsed
 // to contruct this syntax-tree.
 func (ast *AST) GetValue() string {

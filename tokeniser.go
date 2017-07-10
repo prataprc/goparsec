@@ -172,7 +172,7 @@ func OrdTokens(patterns []string, names []string) Parser {
 }
 
 // End is a parser function to detect end of scanner output.
-// Parser is not compatible with AST{}.
+// Parser is not compatible with AST{}. Instead, use AST:End method.
 func End() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		if s.Endof() {
