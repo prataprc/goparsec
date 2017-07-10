@@ -52,7 +52,7 @@ func TestASTAnd(t *testing.T) {
 	ast.Reset()
 	// nil callback
 	y = ast.And("and",
-		func(_ string, _ Queryable) Queryable { return nil },
+		func(_ string, _ Scanner, _ Queryable) Queryable { return nil },
 		Atom("hello", "TERM"),
 	)
 	s = NewScanner([]byte("hello"))
@@ -67,7 +67,9 @@ func TestASTAnd(t *testing.T) {
 	ast.Reset()
 	// return new object
 	y = ast.And("and",
-		func(_ string, _ Queryable) Queryable { return MaybeNone("missing") },
+		func(_ string, _ Scanner, _ Queryable) Queryable {
+			return MaybeNone("missing")
+		},
 		Atom("hello", "TERM"),
 	)
 	s = NewScanner([]byte("hello"))
@@ -107,7 +109,7 @@ func TestASTOrdChoice(t *testing.T) {
 	ast.Reset()
 	// nil callback
 	y = ast.OrdChoice("or",
-		func(_ string, _ Queryable) Queryable { return nil },
+		func(_ string, _ Scanner, _ Queryable) Queryable { return nil },
 		Atom("hello", "TERM"), Atom("world", "TERM"),
 	)
 	s = NewScanner([]byte("world"))
@@ -179,7 +181,7 @@ func TestASTStrEOF(t *testing.T) {
 	ast := NewAST("teststreof", 100)
 	y := ast.Many(
 		"many",
-		func(_ string, ns Queryable) Queryable { return ns },
+		func(_ string, _ Scanner, ns Queryable) Queryable { return ns },
 		word,
 	)
 	input := `"alpha" "beta" "gamma"`
@@ -217,7 +219,7 @@ func TestASTMany(t *testing.T) {
 	// Return nil
 	y = ast.Many(
 		"many",
-		func(_ string, _ Queryable) Queryable { return nil },
+		func(_ string, _ Scanner, _ Queryable) Queryable { return nil },
 		w, Atom(",", "COMMA"),
 	)
 	s = NewScanner([]byte("one,two"))
@@ -247,7 +249,7 @@ func TestASTManyUntil(t *testing.T) {
 	ast := NewAST("testmanyuntil", 100)
 	y := ast.ManyUntil(
 		"manyuntil",
-		func(_ string, _ Queryable) Queryable { return nil },
+		func(_ string, _ Scanner, _ Queryable) Queryable { return nil },
 		w, Atom(",", "COMMA"),
 	)
 	s := NewScanner([]byte("one,two"))
@@ -357,7 +359,8 @@ func TestASTForwardReference(t *testing.T) {
 	// nil return
 	y = ast.Maybe(
 		"maybe",
-		func(_ string, _ Queryable) Queryable { return nil }, w,
+		func(_ string, _ Scanner, _ Queryable) Queryable { return nil },
+		w,
 	)
 	s = NewScanner([]byte("one"))
 	node, _ = ast.Parsewith(y, s)

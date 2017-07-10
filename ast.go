@@ -43,14 +43,14 @@ type Queryable interface {
 // ASTNodify callback function to construct custom Queryable. Even when
 // combinators line And, OrdChoice, Many etc.. match input string, it is
 // possible to fail them via ASTNodify callback function, by returning nil.
-// This very useful in cases like:
+// This is useful in cases like:
 //
 //	* where lookahead matching is required.
 //  * exceptional cases for a regex pattern.
 //
 // Note that some combinators like Kleene shall not interpret the return
 // value from ASTNodify callback.
-type ASTNodify func(name string, node Queryable) Queryable
+type ASTNodify func(name string, s Scanner, node Queryable) Queryable
 
 // AST to parse and construct Abstract Syntax Tree whose nodes confirm
 // to `Queryable` interfaces facilitating tree processing algorithms.
@@ -127,7 +127,7 @@ func (ast *AST) And(name string, callb ASTNodify, parsers ...interface{}) Parser
 			ast.trydebug(node, news, "And", name, i+1, true)
 			nt.Children = append(nt.Children, node.(Queryable))
 		}
-		if q := ast.docallback(name, callb, nt); q != nil {
+		if q := ast.docallback(name, callb, news, nt); q != nil {
 			return ast.trydebug(q, news, "And", name, -1, true)
 		}
 		ast.putnt(nt)
@@ -146,7 +146,8 @@ func (ast *AST) OrdChoice(
 				fmsg := "while parsing %vth for %q: %v"
 				panic(fmt.Errorf(fmsg, i+1, name, err))
 			} else if n != nil {
-				if q := ast.docallback(name, callb, n.(Queryable)); q != nil {
+				q := ast.docallback(name, callb, news, n.(Queryable))
+				if q != nil {
 					return ast.trydebug(q, news, "OrdChoice", name, i+1, true)
 				}
 				return ast.trydebug(nil, s, "OrdChoice", name, i+1, "skip")
@@ -191,7 +192,7 @@ func (ast *AST) Kleene(
 				}
 			}
 		}
-		return ast.docallback(name, callb, nt), news
+		return ast.docallback(name, callb, news, nt), news
 	}
 }
 
@@ -231,7 +232,7 @@ func (ast *AST) Many(
 			}
 		}
 		if len(nt.Children) > 0 {
-			if q := ast.docallback(name, callb, nt); q != nil {
+			if q := ast.docallback(name, callb, news, nt); q != nil {
 				return q, news
 			}
 		}
@@ -281,7 +282,7 @@ func (ast *AST) ManyUntil(
 			}
 		}
 		if len(nt.Children) > 0 {
-			if q := ast.docallback(name, callb, nt); q != nil {
+			if q := ast.docallback(name, callb, news, nt); q != nil {
 				return q, news
 			}
 		}
@@ -299,7 +300,7 @@ func (ast *AST) Maybe(name string, callb ASTNodify, parser interface{}) Parser {
 		} else if node == nil {
 			return MaybeNone("missing"), s
 		}
-		if q := ast.docallback(name, callb, node.(Queryable)); q != nil {
+		if q := ast.docallback(name, callb, news, node.(Queryable)); q != nil {
 			return q, news
 		}
 		return MaybeNone("missing"), s
@@ -343,10 +344,10 @@ func (ast *AST) doParse(
 }
 
 func (ast *AST) docallback(
-	name string, callb ASTNodify, node Queryable) Queryable {
+	name string, callb ASTNodify, s Scanner, node Queryable) Queryable {
 
 	if callb != nil {
-		q := callb(name, node)
+		q := callb(name, s, node)
 		if q == nil {
 			return nil
 		} else if _, ok := q.(*NonTerminal); !ok {
