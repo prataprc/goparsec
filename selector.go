@@ -1,5 +1,3 @@
-// +build ignore
-
 package parsec
 
 import "fmt"
@@ -10,94 +8,277 @@ import "strconv"
 // attributes on selector non-terminal:
 // `op`, `name`, `attrkey`, `attrop`, `attrval`, `colonspec`, `colonarg`
 
-func ParseSelector(text string) (*AST, Parser) {
+func ParseSelector(ast *AST) Parser {
 	star := AtomExact(`*`, "STAR")
-	nodename := TokenExact(`[a-z][a-z0-9]*`, "NAME")
-	shorthand := TokenExact(`[\.#][a-z][a-z0-9-_]*`, "NAME")
+	nodename := TokenExact(`(?i)[a-z][a-z0-9_-]*`, "NAME")
+	shorthand := TokenExact(`(?i)[\.#][a-z][a-z0-9_-]*`, "SHORTH")
 	selop := TokenExact(`[\s>\+~]+`, "OP")
-	comma := AtomExact(`\s*,\s*`, "OP")
+	comma := TokenExact(`,[ ]*`, "COMMA")
 
-	ast := NewAST("selector", 1000)
-	selector1 := ast.And("selector1", makeselector1,
+	selector := ast.And("selector", makeselector1,
 		ast.Maybe("maybestar", nil, star),
 		ast.Maybe("maybenodename", nil, nodename),
 		ast.Maybe("maybeshorthand", nil, shorthand),
 		ast.Maybe("maybeattribute", nil, yattr(ast)),
 		ast.Maybe("maybecolonsel", nil, ycolon(ast)),
 	)
-	selector2 := ast.And("selector2", makeselector2, selop, selector1)
+	selector2 := ast.And("selector2", makeselector2, selop, selector)
 	selectors2 := ast.Kleene("selectors2", nil, selector2)
-	yone := ast.And("yone",
+	yone := ast.And("selectors",
 		func(_ string, s Scanner, q Queryable) Queryable {
 			children := q.GetChildren()
 			qs := []Queryable{children[0]}
 			qs = append(qs, children[1].GetChildren()...)
-			return &NonTerminal{
-				Name: "yone", Children: qs, Attributes: make(map[string][]string),
-			}
-		}, selector1, selectors2, ast.End("end"),
+			nt := NewNonTerminal("selectors")
+			nt.Children = qs
+			return nt
+		}, selector, selectors2,
 	)
-	yor := ast.Kleene("yor", nil, yone, comma)
-	return ast, yor
+	yor := ast.Kleene("orselectors", nil, yone, comma)
+	return yor
 }
 
-func astwalk(parent Queryable, qs []Queryable, ch chan Queryable) {
-	if len(qs) == 0 {
-		ch <- parent
-		return
-	}
-	q, children := qs[0], parent.GetChildren()
-	for idx := 0; idx < len(children); {
-		if applyselector(parent, idx, children[idx], q) {
-			c, cs := children[idx], children[idx+1:]
-			nextidx, newqs := applysiblings(parent, idx, c, cs, qs[1:], ch)
-			if nextidx == -1 {
-				continue
-			} else if nextidx == -2 {
-				return
+func yattr(ast *AST) Parser {
+	opensqr := AtomExact(`[`, "OPENSQR")
+	closesqr := AtomExact(`]`, "CLOSESQR")
+	attrname := TokenExact(`(?i)[a-z][a-z0-9_-]*`, "ATTRNAME")
+
+	separator := TokenExact(`=|~=|\^=|\$=|\*=`, "ATTRSEP")
+
+	attrval1 := TokenExact(`"[^"]*"`, "VAL1")
+	attrval2 := TokenExact(`'[^']*'`, "VAL2")
+	attrval3 := TokenExact(`[^\s\]]+`, "VAL3")
+	attrchoice := ast.OrdChoice("attrchoice",
+		func(_ string, s Scanner, q Queryable) Queryable {
+			var value string
+			switch t := q.(*Terminal); t.Name {
+			case "VAL1":
+				value = t.Value[1 : len(t.Value)-1]
+			case "VAL2":
+				value = t.Value[1 : len(t.Value)-1]
+			case "VAL3":
+				value = t.Value
 			}
-			astwalk(children[nextidx], newqs, ch)
-		}
-		if qcombinator(q) == "descend" {
-			astwalk(children[idx], qs, ch)
+			return NewTerminal("attrchoice", value, s.GetCursor())
+		}, attrval1, attrval2, attrval3,
+	)
+	attrval := ast.And("attrval", nil, separator, attrchoice)
+	attribute := ast.And("attribute", nil,
+		opensqr, attrname, ast.Maybe("attrval", nil, attrval), closesqr,
+	)
+	return attribute
+}
+
+func ycolon(ast *AST) Parser {
+	openparan := AtomExact(`(`, "OPENPARAN")
+	closeparan := AtomExact(`)`, "CLOSEPARAN")
+	colon := AtomExact(`:`, "COLON")
+
+	arg := ast.And("arg",
+		func(_ string, s Scanner, n Queryable) Queryable {
+			t := n.GetChildren()[1].(*Terminal)
+			t.Value = "(" + t.Value + ")"
+			return t
+		},
+		openparan, Int(), closeparan,
+	)
+	colonEmpty := AtomExact(`empty`, "empty")
+	colonFirstChild := AtomExact(`first-child`, "first-child")
+	colonFirstType := AtomExact(`first-of-type`, "first-of-type")
+	colonLastChild := AtomExact(`last-child`, "last-child")
+	colonLastType := AtomExact(`last-of-type`, "last-of-type")
+	colonNthChild := ast.And(`nth-child`,
+		func(_ string, s Scanner, n Queryable) Queryable {
+			n.SetAttribute("arg", n.GetChildren()[1].GetValue())
+			return n
+		},
+		AtomExact(`nth-child`, "CNC"), arg,
+	)
+	colonNthType := ast.And(`nth-of-type`,
+		func(_ string, s Scanner, n Queryable) Queryable {
+			n.SetAttribute("arg", n.GetChildren()[1].GetValue())
+			return n
+		},
+		AtomExact(`nth-of-type`, "CNOT"), arg,
+	)
+	colonNthLastChild := ast.And(`nth-last-child`,
+		func(_ string, s Scanner, n Queryable) Queryable {
+			n.SetAttribute("arg", n.GetChildren()[1].GetValue())
+			return n
+		},
+		AtomExact(`nth-last-child`, "CNLC"), arg,
+	)
+	colonNthLastType := ast.And(`nth-last-of-type`,
+		func(_ string, s Scanner, n Queryable) Queryable {
+			n.SetAttribute("arg", n.GetChildren()[1].GetValue())
+			return n
+		},
+		AtomExact(`nth-last-of-type`, "CNLOT"), arg,
+	)
+	colonOnlyType := AtomExact(`only-of-type`, "only-of-type")
+	colonOnlyChild := AtomExact(`only-child`, "only-child")
+	colonname := ast.OrdChoice("colonname", nil,
+		colonEmpty,
+		colonFirstChild,
+		colonFirstType,
+		colonLastChild,
+		colonLastType,
+		colonNthChild,
+		colonNthType,
+		colonNthLastChild,
+		colonNthLastType,
+		colonOnlyType,
+		colonOnlyChild,
+	)
+	return ast.And("selectcolon", nil, colon, colonname)
+}
+
+func makeselector2(name string, s Scanner, nt Queryable) Queryable {
+	cs := nt.GetChildren()
+	cs[1].SetAttribute("op", strings.Trim(cs[0].GetValue(), " "))
+	return cs[1]
+}
+
+func makeselector1(name string, s Scanner, nt Queryable) Queryable {
+	cs := nt.GetChildren()
+	nt, ok := makeselector1Star(nt, cs[0]) // maybestar
+	if ok == false {
+		nt, _ = makeselector1Name(nt, cs[1]) // maybenodename
+	}
+	nt, _ = makeselector1Shand(nt, cs[2]) // maybeshorthand
+	nt, _ = makeselector1Attr(nt, cs[3])  // maybeattribute
+	nt, _ = makeselector1Colon(nt, cs[4]) // maybecolonsel
+	return nt
+}
+
+func makeselector1Star(nt, starq Queryable) (Queryable, bool) {
+	if _, ok := starq.(MaybeNone); ok == true {
+		return nt, false
+	}
+	nt.SetAttribute("name", starq.GetValue())
+	return nt, true
+}
+
+func makeselector1Name(nt, nameq Queryable) (Queryable, bool) {
+	if _, ok := nameq.(MaybeNone); ok == true {
+		return nt, false
+	}
+	nt.SetAttribute("name", nameq.GetValue())
+	return nt, true
+}
+
+func makeselector1Shand(nt, shq Queryable) (Queryable, bool) {
+	if _, ok := shq.(MaybeNone); ok == true {
+		return nt, false
+	}
+	value := shq.GetValue()
+	switch value[0] {
+	case '.':
+		nt.SetAttribute("attrkey", "class")
+	case '#':
+		nt.SetAttribute("attrkey", "id")
+	}
+	nt.SetAttribute("attrop", "=").SetAttribute("attrval", value[1:])
+	return nt, true
+}
+
+func makeselector1Attr(nt, attrq Queryable) (Queryable, bool) {
+	if _, ok := attrq.(MaybeNone); ok == true {
+		return nt, false
+	}
+	cs := attrq.GetChildren()
+	nt.SetAttribute("attrkey", cs[1].GetValue())
+	if valcs := cs[2].GetChildren(); len(valcs) > 0 {
+		nt.SetAttribute("attrop", valcs[0].GetValue())
+		nt.SetAttribute("attrval", valcs[1].GetValue())
+	}
+	return nt, true
+}
+
+func makeselector1Colon(nt, colonq Queryable) (Queryable, bool) {
+	if _, ok := colonq.(MaybeNone); ok == true {
+		return nt, false
+	}
+	colonq = colonq.GetChildren()[1]
+	nt.SetAttribute("colonspec", colonq.GetName())
+	attrvals := colonq.GetAttribute("arg")
+	if len(attrvals) > 0 {
+		nt.SetAttribute("colonarg", attrvals[0])
+	}
+	return nt, true
+}
+
+//---- walk the tree
+
+func astwalk(
+	parent Queryable, idx int, node Queryable,
+	qs []Queryable, ch chan Queryable) {
+
+	var descendok bool
+
+	q, remqs := qs[0], qs[1:]
+	matchok := applyselector(parent, idx, node, q)
+	if qcombinator(q) == "child" && matchok == false {
+		return // cannot descend
+	} else if matchok == false {
+		remqs = qs
+	} else if len(remqs) == 0 { // and matchok == true
+		remqs = qs
+		ch <- node
+	} else { // matchok `and` remqs > 0
+		idx, remqs, descendok = applysiblings(parent, idx, node, remqs, ch)
+		if descendok == false {
+			return
 		}
 	}
-	return
+	if parent != nil {
+		node = parent.GetChildren()[idx]
+	}
+	for idx, child := range node.GetChildren() {
+		astwalk(node, idx, child, remqs, ch)
+	}
 }
 
 func applysiblings(
-	parent Queryable, idx int, sibling Queryable, children []Queryable,
-	qs []Queryable, ch chan Queryable) (int, []Queryable) {
+	parent Queryable, idx int, node Queryable,
+	qs []Queryable, ch chan Queryable) (int, []Queryable, bool) {
 
-	// children is remainin children after sibling
-	if len(qs) == 0 { // success match
-		ch <- sibling
-		return -1, qs
+	if parent == nil { // node must be root
+		return idx, qs, true
 	}
-	q, typ := qs[0], qcombinator(qs[0])
-	if len(children) == 0 && (typ == "next" || typ == "after") {
-		return -2, qs // failed mismatch
+
+	q, typ, children := qs[0], qcombinator(qs[0]), parent.GetChildren()
+	nchild, dosibling := len(children), (typ == "next") || (typ == "after")
+	if dosibling == false {
+		return idx, qs, true
+	} else if idx >= (nchild - 1) { // there should be atleast one more sibling
+		return idx, qs, false
 	}
 
 	if typ == "next" {
-		if applyselector(parent, idx+1, children[0], q) {
-			c, cs := children[0], children[1:]
-			idx1, qs := applysiblings(parent, idx+1, c, cs, qs[1:], ch)
-			return idx + 1 + idx1, qs
+		matchok := applyselector(parent, idx+1, children[idx+1], q)
+		remqs, node := qs[1:], children[idx+1]
+		if matchok && len(remqs) == 0 {
+			ch <- children[idx+1]
+			return idx, qs, false
+		} else if matchok {
+			return applysiblings(parent, idx+1, node, remqs, ch)
 		}
-		return -1, qs
-
-	} else if typ == "after" {
-		for i, child := range children {
-			if applyselector(parent, idx+1+i, child, q) {
-				c, cs := child, children[i+1:]
-				idx1, qs := applysiblings(parent, idx+1+i, c, cs, qs[1:], ch)
-				return idx + 1 + i + idx1, qs
-			}
-		}
-		return -1, qs
+		return idx, qs, false
 	}
-	return idx, qs
+
+	// typ == "after"
+	for idx = idx + 1; idx < nchild; idx++ {
+		matchok := applyselector(parent, idx, children[idx], q)
+		remqs, node := qs[1:], children[idx]
+		if matchok && len(remqs) == 0 {
+			ch <- children[idx]
+			return idx, qs, false
+		} else if matchok {
+			return applysiblings(parent, idx, node, remqs, ch)
+		}
+	}
+	return idx, qs, false
 }
 
 func applyselector(parent Queryable, idx int, node, q Queryable) bool {
@@ -118,8 +299,8 @@ func applyselector(parent Queryable, idx int, node, q Queryable) bool {
 	return true
 }
 
-func qcombinator(q Queryable) string {
-	ops := q.GetAttribute("op")
+func qcombinator(sel Queryable) string {
+	ops := sel.GetAttribute("op")
 	if len(ops) == 0 {
 		return ""
 	}
@@ -129,9 +310,9 @@ func qcombinator(q Queryable) string {
 	case "~":
 		return "after"
 	case ">":
-		return "descend"
+		return "child"
 	}
-	return ""
+	return "descend"
 }
 
 func getselectorattr(q Queryable) (key, op, match string) {
@@ -158,7 +339,9 @@ func getcolon(q Queryable) (colonspec, colonarg string) {
 }
 
 func filterbyname(node Queryable, name string) bool {
-	if node.GetName() != name {
+	if name == "*" {
+		return true
+	} else if strings.ToLower(node.GetName()) != strings.ToLower(name) {
 		return false
 	}
 	return true
@@ -193,15 +376,16 @@ func filterbyattr(node Queryable, key, op, match string) bool {
 		return nodeval != ""
 	} else if key == "value" {
 		return doop(op, nodeval, match)
-	} else if vals := node.GetAttribute(key); vals == nil {
+	}
+	vals := node.GetAttribute(key)
+	if vals == nil {
 		return false
 	} else if vals != nil && op == "" {
 		return true
-	} else {
-		for _, val := range vals {
-			if doop(op, val, match) {
-				return true
-			}
+	}
+	for _, val := range vals {
+		if doop(op, val, match) {
+			return true
 		}
 	}
 	return false
@@ -211,27 +395,34 @@ func filterbycolon(
 	parent Queryable, idx int, node Queryable,
 	colonspec, colonarg string) bool {
 
-	carg, _ := strconv.Atoi(colonarg)
+	if colonspec == "" {
+		return true
+	}
+
+	carg, _ := strconv.Atoi(strings.Trim(colonarg, "()"))
 	switch colonspec {
 	case "empty":
 		if len(node.GetChildren()) == 0 {
 			return true
 		}
+
 	case "first-child":
 		if idx == 0 {
 			return true
 		}
+
 	case "first-of-type":
 		if parent == nil {
 			return true
 		}
 		name, children := node.GetName(), parent.GetChildren()
-		for i := 0; i < idx; i++ {
+		for i := 0; i < len(children) && i < idx; i++ {
 			if name == children[i].GetName() {
 				return false
 			}
 		}
 		return true
+
 	case "last-child":
 		if parent == nil || idx == len(parent.GetChildren())-1 {
 			return true
@@ -241,7 +432,7 @@ func filterbycolon(
 			return true
 		}
 		name, children := node.GetName(), parent.GetChildren()
-		for i := idx + 1; i < len(children); i++ {
+		for i := idx + 1; i >= 0 && i < len(children); i++ {
 			if name == children[i].GetName() {
 				return false
 			}
@@ -256,7 +447,7 @@ func filterbycolon(
 			return true
 		}
 		n, name, children := -1, node.GetName(), parent.GetChildren()
-		for i := 0; i <= idx; i++ {
+		for i := 0; i < len(children) && i <= idx; i++ {
 			if name == children[i].GetName() {
 				n++
 			}
@@ -264,16 +455,18 @@ func filterbycolon(
 		if n == carg {
 			return true
 		}
+
 	case "nth-last-child":
 		if parent == nil || len(parent.GetChildren())-1 == idx {
 			return true
 		}
+
 	case "nth-last-of-type":
 		if parent == nil {
 			return true
 		}
 		n, name, children := -1, node.GetName(), parent.GetChildren()
-		for i := len(children) - 1; i >= idx; i++ {
+		for i := len(children) - 1; i >= 0 && i >= idx; i-- {
 			if name == children[i].GetName() {
 				n++
 			}
@@ -281,6 +474,7 @@ func filterbycolon(
 		if n == carg {
 			return true
 		}
+
 	case "only-of-type":
 		if parent == nil {
 			return true
@@ -292,182 +486,13 @@ func filterbycolon(
 			}
 		}
 		if n == 1 {
-			return false
+			return true
 		}
+
 	case "only-child":
 		if parent == nil || len(parent.GetChildren()) == 1 {
 			return true
 		}
 	}
-	panic("unreachable code")
-}
-
-func yattr(ast *AST) Parser {
-	opensqr := AtomExact(`[`, "OPENSQR")
-	closesqr := AtomExact(`]`, "CLOSESQR")
-	attrname := TokenExact(`[a-z][a-z0-9]*`, "ATTRNAME")
-
-	separator := TokenExact(`(=|~=|^=|$=|*=)`, "ATTRSEP")
-
-	attrval1 := TokenExact(`"[^"]*"`, "VAL1")
-	attrval2 := TokenExact(`'[^']*'`, "VAL2")
-	attrval3 := TokenExact(`[^\s]+`, "VAL3")
-	attrchoice := ast.OrdChoice("ATTRVAL",
-		func(_ string, s Scanner, q Queryable) Queryable {
-			var value string
-			switch t := q.(*Terminal); t.Name {
-			case "VAL1":
-				value = t.Value[1 : len(t.Value)-1]
-			case "VAL2":
-				value = t.Value[1 : len(t.Value)-1]
-			case "VAL3":
-				value = t.Value
-			}
-			return &Terminal{
-				Name: "ATTRVAL", Value: value, Position: s.GetCursor(),
-			}
-		}, attrval1, attrval2, attrval3,
-	)
-	attrval := ast.And("attrval", nil, separator, attrchoice)
-	attribute := ast.And("attribute", nil,
-		opensqr, attrname, ast.Maybe("attrval", nil, attrval), closesqr,
-	)
-	return attribute
-}
-
-func ycolon(ast *AST) Parser {
-	openparan := AtomExact(`(`, "OPENPARAN")
-	closeparan := AtomExact(`)`, "CLOSEPARAN")
-	colon := AtomExact(`:`, "COLON")
-
-	arg := ast.And("arg",
-		func(_ string, s Scanner, n Queryable) Queryable {
-			return n.GetChildren()[1]
-		},
-		openparan, Int(), closeparan,
-	)
-	colonEmpty := AtomExact(`empty`, "CEMPTY")
-	colonFirstChild := AtomExact(`first-child`, "CFC")
-	colonFirstType := AtomExact(`first-of-type`, "CFOT")
-	colonLastChild := AtomExact(`last-child`, "CLC")
-	colonLastType := AtomExact(`last-of-type`, "CLOT")
-	colonNthChild := ast.And(`nth-child`,
-		func(_ string, s Scanner, n Queryable) Queryable {
-			n.SetAttribute("arg", n.GetChildren()[1].GetValue())
-			return n
-		},
-		AtomExact(`nth-child`, "CNC"), arg,
-	)
-	colonNthType := ast.And(`nth-of-type`,
-		func(_ string, s Scanner, n Queryable) Queryable {
-			n.SetAttribute("arg", n.GetChildren()[1].GetValue())
-			return n
-		},
-		AtomExact(`nth-of-type`, "CNOT"), arg,
-	)
-	colonNthLastChild := ast.And(`nth-last-child`,
-		func(_ string, s Scanner, n Queryable) Queryable {
-			n.SetAttribute("arg", n.GetChildren()[1].GetValue())
-			return n
-		},
-		AtomExact(`nth-last-child`, "CNLC"), arg,
-	)
-	colonNthLastType := ast.And(`nth-last-of-type`,
-		func(_ string, s Scanner, n Queryable) Queryable {
-			n.SetAttribute("arg", n.GetChildren()[1].GetValue())
-			return n
-		},
-		AtomExact(`nth-last-of-type`, "CNLOT"), arg,
-	)
-	colonOnlyType := AtomExact(`only-of-type`, "COOT")
-	colonOnlyChild := AtomExact(`only-child`, "COC")
-	colonname := ast.OrdChoice("colonname", nil,
-		colonEmpty,
-		colonFirstChild,
-		colonFirstType,
-		colonLastChild,
-		colonLastType,
-		colonNthChild,
-		colonNthType,
-		colonNthLastChild,
-		colonNthLastType,
-		colonOnlyType,
-		colonOnlyChild,
-	)
-	return ast.And("selectcolon", nil, colon, colonname)
-}
-
-func makeselector2(name string, s Scanner, nt Queryable) Queryable {
-	cs := nt.GetChildren()
-	cs[1].SetAttribute("op", cs[0].GetValue())
-	return cs[1]
-}
-
-func makeselector1(name string, s Scanner, nt Queryable) Queryable {
-	cs := nt.GetChildren()
-	nt, ok := makeselector1Star(nt, cs[0]) // maybestar
-	if ok == false {
-		nt, _ = makeselector1Name(nt, cs[1]) // maybenodename
-	}
-	nt, _ = makeselector1Shand(nt, cs[2]) // maybeshorthand
-	nt, _ = makeselector1Attr(nt, cs[3])  // maybeattribute
-	nt, _ = makeselector1Colon(nt, cs[4]) // maybecolonsel
-	return nt
-}
-
-func makeselector1Star(nt, starq Queryable) (Queryable, bool) {
-	if _, ok := starq.(MaybeNone); ok == false {
-		return nt, false
-	}
-	nt.SetAttribute("name", starq.GetValue())
-	return nt, true
-}
-
-func makeselector1Name(nt, nameq Queryable) (Queryable, bool) {
-	if _, ok := nameq.(MaybeNone); ok == false {
-		return nt, false
-	}
-	nt.SetAttribute("name", nameq.GetValue())
-	return nt, true
-}
-
-func makeselector1Shand(nt, shq Queryable) (Queryable, bool) {
-	if _, ok := shq.(MaybeNone); ok == false {
-		return nt, false
-	}
-	value := shq.GetValue()
-	switch value[0] {
-	case '.':
-		nt.SetAttribute("attrkey", "class")
-	case '#':
-		nt.SetAttribute("attrkey", "id")
-	}
-	nt.SetAttribute("attrop", "=").SetAttribute("attrval", value[1:])
-	return nt, true
-}
-
-func makeselector1Attr(nt, attrq Queryable) (Queryable, bool) {
-	if _, ok := attrq.(MaybeNone); ok == false {
-		return nt, false
-	}
-	cs := attrq.GetChildren()
-	nt.SetAttribute("attrname", cs[1].GetValue())
-	if valcs := cs[2].GetChildren(); len(valcs) > 0 {
-		nt.SetAttribute("attrop", valcs[0].GetValue())
-		nt.SetAttribute("attrval", valcs[1].GetValue())
-	}
-	return nt, true
-}
-
-func makeselector1Colon(nt, colonq Queryable) (Queryable, bool) {
-	if _, ok := colonq.(MaybeNone); ok == false {
-		return nt, false
-	}
-	colonq = colonq.GetChildren()[1]
-	nt.SetAttribute("colonspec", colonq.GetName())
-	attrvals := colonq.GetAttribute("arg")
-	if len(attrvals) > 0 {
-		nt.SetAttribute("colonarg", attrvals[0])
-	}
-	return nt, true
+	return false
 }

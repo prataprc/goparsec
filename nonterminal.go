@@ -9,6 +9,17 @@ type NonTerminal struct {
 	Attributes map[string][]string
 }
 
+// NewNonTerminal create a new Terminal instance.
+func NewNonTerminal(name string) *NonTerminal {
+	nt := &NonTerminal{
+		Name:       name,
+		Children:   make([]Queryable, 0),
+		Attributes: make(map[string][]string),
+	}
+	nt.SetAttribute("class", "nonterm")
+	return nt
+}
+
 // GetName implement Queryable interface.
 func (nt *NonTerminal) GetName() string {
 	return nt.Name

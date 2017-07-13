@@ -311,7 +311,7 @@ func (ast *AST) Maybe(name string, callb ASTNodify, parser interface{}) Parser {
 func (ast *AST) End(name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		if s.Endof() {
-			return &Terminal{Name: name, Position: s.GetCursor()}, s
+			return NewTerminal(name, "", s.GetCursor()), s
 		}
 		return nil, s
 	}
@@ -334,6 +334,18 @@ func (ast *AST) Prettyprint() {
 
 func (ast *AST) Dotstring(name string) string {
 	return ast.dottext(name)
+}
+
+func (ast *AST) Query(selectors string, ch chan Queryable) {
+	selast := NewAST("selectors", 100)
+	y := ParseSelector(selast)
+	qsel, _ := selast.Parsewith(y, NewScanner([]byte(selectors)))
+	orsels := qsel.GetChildren()
+	for _, orsel := range orsels {
+		qs := orsel.GetChildren()
+		astwalk(nil, 0, ast.root, qs, ch)
+	}
+	close(ch)
 }
 
 //---- local functions
@@ -361,7 +373,9 @@ func (ast *AST) docallback(
 		if q == nil {
 			return nil
 		} else if _, ok := q.(*NonTerminal); !ok {
-			ast.putnt(node.(*NonTerminal))
+			if nt, ok := node.(*NonTerminal); ok {
+				ast.putnt(nt)
+			}
 		}
 		return q
 	}
@@ -373,7 +387,7 @@ func (ast *AST) getnt(name string) (node *NonTerminal) {
 	case node = <-ast.ntpool:
 		node.Name = name
 	default:
-		node = &NonTerminal{Name: name, Children: make([]Queryable, 0)}
+		node = NewNonTerminal(name)
 	}
 	return node
 }

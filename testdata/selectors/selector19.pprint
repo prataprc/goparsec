@@ -1,0 +1,12 @@
+orselectors @ -1
+  selectors @ -1
+    selector @ -1
+      *missing: ""
+      *missing: ""
+      *missing: ""
+      *missing: ""
+      selectcolon @ 0
+        *COLON: ":"
+        nth-of-type @ 1
+          *CNOT: "nth-of-type"
+          *INT: "(0)"

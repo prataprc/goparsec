@@ -1,0 +1,14 @@
+orselectors @ -1
+  selectors @ -1
+    selector @ -1
+      *missing: ""
+      *missing: ""
+      *missing: ""
+      attribute @ 0
+        *OPENSQR: "["
+        *ATTRNAME: "class"
+        attrval @ 6
+          *ATTRSEP: "*="
+          *attrchoice: "non"
+        *CLOSESQR: "]"
+      *missing: ""

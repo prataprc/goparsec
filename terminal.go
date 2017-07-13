@@ -9,6 +9,18 @@ type Terminal struct {
 	Attributes map[string][]string
 }
 
+// NewTerminal create a new Terminal instance.
+func NewTerminal(name, value string, position int) *Terminal {
+	t := &Terminal{
+		Name:       name,
+		Value:      value,
+		Position:   position,
+		Attributes: make(map[string][]string),
+	}
+	t.SetAttribute("class", "term")
+	return t
+}
+
 // GetName implement Queryable interface.
 func (t *Terminal) GetName() string {
 	return t.Name

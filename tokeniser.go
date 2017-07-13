@@ -83,8 +83,7 @@ func Token(pattern string, name string) Parser {
 		news.SkipWS()
 		cursor := news.GetCursor()
 		if tok, _ := news.Match(pattern); tok != nil {
-			t := Terminal{Name: name, Value: string(tok), Position: cursor}
-			return &t, news
+			return NewTerminal(name, string(tok), cursor), news
 		}
 		return nil, s
 	}
@@ -97,8 +96,7 @@ func TokenExact(pattern string, name string) Parser {
 		news := s.Clone()
 		cursor := news.GetCursor()
 		if tok, _ := news.Match("^" + pattern); tok != nil {
-			t := Terminal{Name: name, Value: string(tok), Position: cursor}
-			return &t, news
+			return NewTerminal(name, string(tok), cursor), news
 		}
 		return nil, s
 	}
@@ -118,8 +116,7 @@ func Atom(match string, name string) Parser {
 		news.SkipWS()
 		cursor := news.GetCursor()
 		if ok, _ := news.MatchString(match); ok {
-			t := Terminal{Name: name, Value: match, Position: cursor}
-			return &t, news
+			return NewTerminal(name, match, cursor), news
 		}
 		return nil, s
 	}
@@ -132,8 +129,7 @@ func AtomExact(match string, name string) Parser {
 		news := s.Clone()
 		cursor := news.GetCursor()
 		if ok, _ := news.MatchString(match); ok {
-			t := Terminal{Name: name, Value: match, Position: cursor}
-			return &t, news
+			return NewTerminal(name, match, cursor), news
 		}
 		return nil, s
 	}
@@ -159,12 +155,7 @@ func OrdTokens(patterns []string, names []string) Parser {
 		cursor := news.GetCursor()
 		if captures, _ := news.SubmatchAll(ordPattern); captures != nil {
 			for name, tok := range captures {
-				t := Terminal{
-					Name:     name,
-					Value:    string(tok),
-					Position: cursor,
-				}
-				return &t, news
+				return NewTerminal(name, string(tok), cursor), news
 			}
 		}
 		return nil, s
