@@ -210,6 +210,21 @@ The scanner library supplies method receivers like ``Match(pattern)``,
 ``SkipAny(pattern)`` and ``Endof()``, refer to scanner.go for more information
 on each of these methods.
 
+Panics and Recovery
+-------------------
+
+Panics are to expected when APIs are misused. Programmers might choose
+to ignore the errors, but not panics. For example:
+
+* Combinators accept Parser function or pointer to Parser function. Anything
+  else will panic.
+* Kleene and Many combinators take one or two parsers as arguments. Less than
+  one or more than two will throw a panic.
+* ManyUntil combinator take two or three parsers as arguments. Less than two
+  or more than three will throw a panic.
+* When using invalid regular expression to match a token.
+
+
 Examples
 --------
 
