@@ -298,11 +298,11 @@ How to contribute
 -----------------
 
 * Pick an issue, or create an new issue. Provide adequate documentation for
-the issue.
+  the issue.
 * Assign the issue or get it assigned.
 * Work on the code, once finished, raise a pull request.
 * Goparsec is written in [golang](https://golang.org/), hence expected to follow the
-global guidelines for writing go programs.
+  global guidelines for writing go programs.
 * If the changeset is more than few lines, please generate a
-[report card](https://goreportcard.com/report/github.com/prataprc/goparsec).
+  [report card](https://goreportcard.com/report/github.com/prataprc/goparsec).
 * As of now, branch ``master`` is the development branch.
