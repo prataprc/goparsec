@@ -1,7 +1,7 @@
 Parser combinator library in Golang
 ===================================
 
-[![Join the chat at https://gitter.im/prataprc/goparsec](https://badges.gitter.im/prataprc/goparsec.svg)](https://gitter.im/prataprc/goparsec?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![talk on matrix](https://github.com/prataprc/dotfiles/blob/master/assets/talkonmatrix.svg)](https://riot.im/app/#/user/@prataprc:matrix.org?action=chat)
 [![Build Status](https://travis-ci.org/prataprc/goparsec.svg?branch=master)](https://travis-ci.org/prataprc/goparsec)
 [![Coverage Status](https://coveralls.io/repos/github/prataprc/goparsec/badge.svg?branch=master)](https://coveralls.io/github/prataprc/goparsec?branch=master)
 [![GoDoc](https://godoc.org/github.com/prataprc/goparsec?status.png)](https://godoc.org/github.com/prataprc/goparsec)
