@@ -1,4 +1,5 @@
-//  Copyright (c) 2013 Couchbase, Inc.
+// Copyright (c) 2013 Goparsec AUTHORS. All rights reserved.
+// Use of this source code is governed by LICENSE file.
 
 // parsec also supplies a basic set of token parsers
 // that can be used to create higher order parser using

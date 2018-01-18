@@ -1,4 +1,5 @@
-//  Copyright (c) 2013 Couchbase, Inc.
+// Copyright (c) 2013 Goparsec AUTHORS. All rights reserved.
+// Use of this source code is governed by LICENSE file.
 
 package expr
 
