@@ -1,7 +1,8 @@
 package parsec
 
-// Terminal structure can be used to construct a terminal
-// ParsecNode.
+// Terminal type can be used to construct a terminal ParsecNode.
+// It implements Queryable interface, hence can be used with
+// AST object.
 type Terminal struct {
 	Name       string // contains terminal's token type
 	Value      string // value of the terminal
@@ -9,7 +10,9 @@ type Terminal struct {
 	Attributes map[string][]string
 }
 
-// NewTerminal create a new Terminal instance.
+// NewTerminal create a new Terminal instance. Supply the name of the
+// terminal, its matching text from i/p stream as value. And its position
+// within the i/p stream.
 func NewTerminal(name, value string, position int) *Terminal {
 	t := &Terminal{
 		Name:       name,
@@ -75,8 +78,8 @@ func (t *Terminal) GetAttributes() map[string][]string {
 	return t.Attributes
 }
 
-// MaybeNone place holder type used be Maybe combinator if parser does not
-// match the input text.
+// MaybeNone is a placeholder type, similar to Terminal type, used by
+// Maybe combinator if parser does not match the input text.
 type MaybeNone string
 
 //---- implement Queryable interface

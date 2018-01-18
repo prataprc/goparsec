@@ -1,6 +1,6 @@
 package parsec
 
-// NonTerminal will be used by AST objects to construct intermediate nodes.
+// NonTerminal will be used by AST methods to construct intermediate nodes.
 // Note that user supplied ASTNodify callback can construct a different
 // type of intermediate node that confirms to Queryable interface.
 type NonTerminal struct {
@@ -9,7 +9,7 @@ type NonTerminal struct {
 	Attributes map[string][]string
 }
 
-// NewNonTerminal create a new Terminal instance.
+// NewNonTerminal create and return a new NonTerminal instance.
 func NewNonTerminal(name string) *NonTerminal {
 	nt := &NonTerminal{
 		Name:       name,

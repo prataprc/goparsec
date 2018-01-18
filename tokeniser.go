@@ -1,23 +1,23 @@
 // Copyright (c) 2013 Goparsec AUTHORS. All rights reserved.
 // Use of this source code is governed by LICENSE file.
 
-// parsec also supplies a basic set of token parsers
-// that can be used to create higher order parser using
-// one of the many combinators.
+/*
+This file provides a basic set of token parsers that can be used
+to parse a single token or used to create higher order parsers using
+the combinator functions. Unless specified, these parsers can be
+used with AST combinators and return a Terminal node.
+*/
 
 package parsec
 
-import "fmt"
 import "strings"
 import "strconv"
 import "unicode"
 import "unicode/utf8"
 import "unicode/utf16"
 
-var _ = fmt.Sprintf("dummy")
-
 // String parse double quoted string in input text, this parser is
-// incompatible with AST{}.
+// incompatible with AST combinators. Skip leading whitespace.
 func String() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		s.SkipWS()
@@ -34,47 +34,47 @@ func String() Parser {
 	}
 }
 
-// Char returns a parser function to match a single character
-// in the input stream.
+// Char return parser function to match a single character
+// in the input stream. Skip leading whitespace.
 func Char() Parser {
 	return Token(`'.'`, "CHAR")
 }
 
-// Float returns a parser function to match a float literal
-// in the input stream.
+// Float return parser function to match a float literal
+// in the input stream. Skip leading whitespace.
 func Float() Parser {
 	return Token(`[+-]?([0-9]+\.[0-9]*|\.[0-9]+)`, "FLOAT")
 }
 
-// Hex returns a parser function to match a hexadecimal
-// literal in the input stream.
+// Hex return parser function to match a hexadecimal
+// literal in the input stream. Skip leading whitespace.
 func Hex() Parser {
 	return Token(`0[xX][0-9a-fA-F]+`, "HEX")
 }
 
-// Oct returns a parser function to match an octal number
-// literal in the input stream.
+// Oct return parser function to match an octal number
+// literal in the input stream. Skip leading whitespace.
 func Oct() Parser {
 	return Token(`0[0-7]+`, "OCT")
 }
 
-// Int returns a parser function to match an integer literal
-// in the input stream.
+// Int return parser function to match an integer literal
+// in the input stream. Skip leading whitespace.
 func Int() Parser {
 	return Token(`-?[0-9]+`, "INT")
 }
 
-// Ident returns a parser function to match an identifier
-// token in the input stream, an identifier is matched with
-// the following pattern,
-//      `^[A-Za-z][0-9a-zA-Z_]*`
+// Ident return parser function to match an identifier token
+// in the input stream, an identifier is matched with the
+// following pattern: `^[A-Za-z][0-9a-zA-Z_]*`.
+// Skip leading whitespace.
 func Ident() Parser {
 	return Token(`[A-Za-z][0-9a-zA-Z_]*`, "IDENT")
 }
 
-// Token takes a pattern and returns a parser that will match
-// the pattern with input stream. All leading white space
-// before the token will be skipped.
+// Token takes a regular-expression pattern and return a parser that
+// will match input stream with supplied pattern. Skip leading whitespace.
+// `name` will be used as the Terminal's name.
 func Token(pattern string, name string) Parser {
 	if pattern[0] != '^' {
 		pattern = "^" + pattern
@@ -91,7 +91,8 @@ func Token(pattern string, name string) Parser {
 }
 
 // TokenExact same as Token() but pattern will be matched
-// without skipping leading whitespace.
+// without skipping leading whitespace. `name` will be used as
+// the terminal's name.
 func TokenExact(pattern string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
@@ -105,12 +106,9 @@ func TokenExact(pattern string, name string) Parser {
 
 // Atom is similar to Token, takes a string to match with input
 // byte-by-byte. Internally uses the MatchString() API from Scanner.
-// All leading white space before the atom will be skipped. Note that partial
-// match shall also succeed, example:
-//
+// Skip leading whitespace. For example:
 //		scanner := NewScanner([]byte("cosmos"))
 //		Atom("cos", "ATOM")(scanner) // will match
-//
 func Atom(match string, name string) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		news := s.Clone()
@@ -137,7 +135,7 @@ func AtomExact(match string, name string) Parser {
 }
 
 // OrdTokens to parse a single token based on one of the
-// specified `patterns`.
+// specified `patterns`. Skip leading whitespaces.
 func OrdTokens(patterns []string, names []string) Parser {
 	var group string
 	groups := make([]string, 0, len(patterns))

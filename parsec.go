@@ -5,20 +5,19 @@ package parsec
 
 import "fmt"
 
-// ParsecNode type defines a node in the AST
+// ParsecNode for parsers return input text as parsed nodes.
 type ParsecNode interface{}
 
-// Parser function parses input text, higher order parsers are
-// constructed using combinators.
+// Parser function parses input text encapsulated by Scanner, higher
+// order parsers are constructed using combinators.
 type Parser func(Scanner) (ParsecNode, Scanner)
 
 // Nodify callback function to construct custom ParsecNode. Even when
-// combinators line And, OrdChoice, Many etc.. match input string, it is
-// possible to fail them via nodify callback function, by returning nil.
-// This very useful in cases like:
-//
-//	* where lookahead matching is required.
-//  * exceptional cases for a regex pattern.
+// combinators like And, OrdChoice, Many etc.. can match input string,
+// it is still possible to fail them via nodify callback function, by
+// returning nil. This very useful in cases when,
+//  * lookahead matching is required.
+//  * an exceptional cases for regex pattern.
 //
 // Note that some combinators like KLEENE shall not interpret the return
 // value from Nodify callback.
@@ -26,8 +25,8 @@ type Nodify func([]ParsecNode) ParsecNode
 
 // And combinator accepts a list of `Parser`, or reference to a
 // parser, that must match the input string, atleast until the
-// last Parser argument. Returns a parser function that
-// can be used to construct higher-level parsers.
+// last Parser argument. Return a parser function that can further be
+// used to construct higher-level parsers.
 //
 // If all parser matches, a list of ParsecNode, where each
 // ParsecNode is constructed by matching parser, will be passed
@@ -54,13 +53,13 @@ func And(callb Nodify, parsers ...interface{}) Parser {
 
 // OrdChoice combinator accepts a list of `Parser`, or
 // reference to a parser, where atleast one of the parser
-// must match the input string. Returns a parser function
-// that can be used to construct higher level parsers.
+// must match the input string. Return a parser function
+// that can further be used to construct higher level parsers.
 //
 // The first matching parser function's output is passed
 // as argument to Nodify callback. If none of the parsers
 // match the input, then OrdChoice will fail without consuming
-// the input.
+// any input.
 func OrdChoice(callb Nodify, parsers ...interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		for _, parser := range parsers {
@@ -76,7 +75,7 @@ func OrdChoice(callb Nodify, parsers ...interface{}) Parser {
 
 // Kleene combinator accepts two parsers, or reference to
 // parsers, namely opScan and sepScan, where opScan parser
-// will be used to match input string and contruct ParsecNode
+// will be used to match input string and contruct ParsecNode,
 // and sepScan parser will be used to match input string
 // and ignore the matched string. If sepScan parser is not
 // supplied, then opScan parser will be applied on the input
@@ -123,7 +122,7 @@ func Kleene(callb Nodify, parsers ...interface{}) Parser {
 
 // Many combinator accepts two parsers, or reference to
 // parsers, namely opScan and sepScan, where opScan parser
-// will be used to match input string and contruct ParsecNode
+// will be used to match input string and contruct ParsecNode,
 // and sepScan parser will be used to match input string and
 // ignore the matched string. If sepScan parser is not
 // supplied, then opScan parser will be applied on the input
@@ -177,7 +176,7 @@ func Many(callb Nodify, parsers ...interface{}) Parser {
 
 // ManyUntil combinator accepts three parsers, or references to
 // parsers, namely opScan, sepScan and untilScan, where opScan parser
-// will be used to match input string and contruct ParsecNode
+// will be used to match input string and contruct ParsecNode,
 // and sepScan parser will be used to match input string and
 // ignore the matched string. If sepScan parser is not
 // supplied, then opScan parser will be applied on the input

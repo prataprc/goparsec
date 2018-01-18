@@ -51,8 +51,7 @@ var object = parsec.And(objectNode, openBrace(), properties, closeBrace())
 
 func init() {
 	// value -> null | true | false | num | string | array | object
-	value = parsec.OrdChoice(
-		valueNode, parsec.Parser(tokenTerm), &array, &object)
+	value = parsec.OrdChoice(valueNode, parsec.Parser(tokenTerm), array, object)
 	// expr  -> sum
 	Y = parsec.OrdChoice(one2one, value)
 }

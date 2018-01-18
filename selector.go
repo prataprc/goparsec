@@ -8,7 +8,7 @@ import "strconv"
 // attributes on selector non-terminal:
 // `op`, `name`, `attrkey`, `attrop`, `attrval`, `colonspec`, `colonarg`
 
-func ParseSelector(ast *AST) Parser {
+func parseselector(ast *AST) Parser {
 	star := AtomExact(`*`, "STAR")
 	nodename := TokenExact(`(?i)[a-z][a-z0-9_-]*`, "NAME")
 	shorthand := TokenExact(`(?i)[\.#][a-z][a-z0-9_-]*`, "SHORTH")

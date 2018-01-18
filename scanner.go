@@ -10,15 +10,14 @@ import "unicode"
 import "bytes"
 import "strings"
 
-// Scanner interface supplies necessary methods to match the
-// input stream.
+// Scanner interface defines necessary methods to match the input stream.
 type Scanner interface {
 	// SetWSPattern to configure white space pattern. Typically used as
 	//		scanner := NewScanner(input).SetWSPattern(" ")
 	SetWSPattern(pattern string) Scanner
 
 	// TrackLineno as cursor moves forward, this can slow down parsing.
-	// Suggested for development/debugging.
+	// Useful when developing with parsec package.
 	TrackLineno() Scanner
 
 	// Clone will return new clone of the underlying scanner structure.
@@ -28,28 +27,28 @@ type Scanner interface {
 	// GetCursor gets the current cursor position inside input text.
 	GetCursor() int
 
-	// Match the input stream with `pattern` and return
-	// matching string after advancing the cursor.
+	// Match the input stream with `pattern` and return matching string
+	// after advancing the scanner's cursor.
 	Match(pattern string) ([]byte, Scanner)
 
-	// Match the input stream with a simple string,
-	// rather that a pattern. It should be more efficient.
-	// Returns a bool indicating if the match was succesfull
-	// and the scanner
+	// Match the input stream with a simple string, rather that a
+	// pattern. It should be more efficient. Return a bool indicating
+	// if the match was succesfull after advancing the scanner's cursor.
 	MatchString(string) (bool, Scanner)
 
 	// SubmatchAll the input stream with a choice of `patterns`
-	// and return matching string and submatches, after
-	// advancing the cursor.
+	// and return matching string and submatches, after advancing the
+	// Scanner's cursor.
 	SubmatchAll(pattern string) (map[string][]byte, Scanner)
 
 	// SkipWs skips white space characters in the input stream.
-	// Return skipped whitespaces as byte-slice and advance the cursor.
+	// Return skipped whitespaces as byte-slice after advance the
+	// Scanner's cursor.
 	SkipWS() ([]byte, Scanner)
 
 	// SkipAny any occurrence of the elements of the slice.
 	// Equivalent to Match(`(b[0]|b[1]|...|b[n])*`)
-	// Returns Scanner and advances the cursor.
+	// Returns Scanner after advancing its cursor.
 	SkipAny(pattern string) ([]byte, Scanner)
 
 	// Lineno return the current line-number of the cursor.
@@ -72,8 +71,7 @@ type SimpleScanner struct {
 	tracklineno bool
 }
 
-// NewScanner creates and returns a reference to new instance
-// of SimpleScanner object.
+// NewScanner create and return a new instance of SimpleScanner object.
 func NewScanner(text []byte) Scanner {
 	return &SimpleScanner{
 		buf:          text,
@@ -87,15 +85,13 @@ func NewScanner(text []byte) Scanner {
 
 //---- Scanner{} interface.
 
-// SetWSPattern to configure white space pattern. Typically used as
-//		scanner := NewScanner(input).SetWSPattern(" ")
+// SetWSPattern implement Scanner{} interface.
 func (s *SimpleScanner) SetWSPattern(pattern string) Scanner {
 	s.wsPattern = pattern
 	return s
 }
 
-// TrackLineno as cursor moves forward, this can slow down parsing. Suggested
-// for development/debugging.
+// TrackLineno implement Scanner{} interface.
 func (s *SimpleScanner) TrackLineno() Scanner {
 	s.tracklineno = true
 	return s
@@ -147,10 +143,8 @@ func (s *SimpleScanner) MatchString(str string) (bool, Scanner) {
 }
 
 // SubmatchAll implement Scanner{} interface.
-func (s *SimpleScanner) SubmatchAll(
-	pattern string) (map[string][]byte, Scanner) {
-
-	regc := s.getPattern(pattern)
+func (s *SimpleScanner) SubmatchAll(patt string) (map[string][]byte, Scanner) {
+	regc := s.getPattern(patt)
 	matches := regc.FindSubmatch(s.buf[s.cursor:])
 
 	if matches != nil {
@@ -176,24 +170,6 @@ func (s *SimpleScanner) SkipWS() ([]byte, Scanner) {
 	return s.SkipAny(s.wsPattern)
 }
 
-// SkipWSUnicode for looping through runes checking for whitespace.
-func (s *SimpleScanner) SkipWSUnicode() ([]byte, Scanner) {
-	for i, r := range bytes2str(s.buf[s.cursor:]) {
-		if unicode.IsSpace(r) {
-			if s.tracklineno && r == '\n' {
-				s.lineno += 1
-			}
-			continue
-		}
-		token := s.buf[s.cursor : s.cursor+i]
-		s.cursor += len(token)
-		return token, s
-	}
-	token := s.buf[s.cursor:]
-	s.cursor += len(token)
-	return token, s
-}
-
 // SkipAny implement Scanner{} interface.
 func (s *SimpleScanner) SkipAny(pattern string) ([]byte, Scanner) {
 	if pattern[0] != '^' {
@@ -210,6 +186,24 @@ func (s *SimpleScanner) Lineno() int {
 // Endof implement Scanner{} interface.
 func (s *SimpleScanner) Endof() bool {
 	return s.cursor >= len(s.buf)
+}
+
+// SkipWSUnicode for looping through runes checking for whitespace.
+func (s *SimpleScanner) SkipWSUnicode() ([]byte, Scanner) {
+	for i, r := range bytes2str(s.buf[s.cursor:]) {
+		if unicode.IsSpace(r) {
+			if s.tracklineno && r == '\n' {
+				s.lineno += 1
+			}
+			continue
+		}
+		token := s.buf[s.cursor : s.cursor+i]
+		s.cursor += len(token)
+		return token, s
+	}
+	token := s.buf[s.cursor:]
+	s.cursor += len(token)
+	return token, s
 }
 
 //---- local methods

@@ -10,13 +10,13 @@ import "sort"
 import "strings"
 import "errors"
 
-// Queryable interface to be implemented by all nodes,
-// both Terminal nodes and NonTerminal nodes.
+// Queryable interface to be implemented by all nodes, both terminal
+// and non-terminal nodes constructed using AST object.
 type Queryable interface {
 	// GetName for the node.
 	GetName() string
 
-	// IsTerminal return true of node is a leaf node in syntax-tree.
+	// IsTerminal return true if node is a leaf node in syntax-tree.
 	IsTerminal() bool
 
 	// GetValue return parsed text, if node is NonTerminal it will
@@ -42,11 +42,10 @@ type Queryable interface {
 }
 
 // ASTNodify callback function to construct custom Queryable. Even when
-// combinators line And, OrdChoice, Many etc.. match input string, it is
+// combinators like And, OrdChoice, Many etc.. match input string, it is
 // possible to fail them via ASTNodify callback function, by returning nil.
 // This is useful in cases like:
-//
-//	* where lookahead matching is required.
+//  * where lookahead matching is required.
 //  * exceptional cases for a regex pattern.
 //
 // Note that some combinators like Kleene shall not interpret the return
@@ -64,22 +63,22 @@ type AST struct {
 }
 
 // NewAST return a new instance of AST, maxnodes is size of internal buffer
-// pool of nodes. It is directly proportional to number of nodes that you
+// pool of nodes, it is directly proportional to number of nodes that you
 // expect in the syntax-tree.
 func NewAST(name string, maxnodes int) *AST {
 	return &AST{name: name, ntpool: make(chan *NonTerminal, maxnodes)}
 }
 
-// Debug enables console logging while parsing the input test, this is
+// SetDebug enables console logging while parsing the input test, this is
 // useful while developing a parser.
 func (ast *AST) SetDebug() *AST {
 	ast.debug = true
 	return ast
 }
 
-// Parsewith execute the root parser, y, with scanner s. AST will remember the
-// root parser, and root node. Return the root-node, and scanner with
-// remaining input if parser was successful, other wise nil.
+// Parsewith execute the root parser, y, with scanner s. AST will
+// remember the root parser, and root node. Return the root-node as
+// Queryable, if success and scanner with remaining input.
 func (ast *AST) Parsewith(y Parser, s Scanner) (Queryable, Scanner) {
 	ast.root, ast.y = nil, y
 	node, news := y(s)
@@ -110,8 +109,8 @@ func (ast *AST) Reset() *AST {
 	return ast
 }
 
-// And combinator, name identifies the NonTerminal constructed by this
-// combinator.
+// And combinator, same as package level And combinator function.
+// `name` identifies the NonTerminal constructed by this combinator.
 func (ast *AST) And(name string, callb ASTNodify, parsers ...interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		var node ParsecNode
@@ -136,72 +135,67 @@ func (ast *AST) And(name string, callb ASTNodify, parsers ...interface{}) Parser
 	}
 }
 
-// OrdChoice combinator.
-func (ast *AST) OrdChoice(
-	name string, callb ASTNodify, parsers ...interface{}) Parser {
-
+// OrdChoice combinator, same as package level OrdChoice combinator
+// function. `nm` identifies the NonTerminal constructed by this combinator.
+func (ast *AST) OrdChoice(nm string, cb ASTNodify, ps ...interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
-		for i, parser := range parsers {
+		for i, parser := range ps {
 			news := s.Clone()
 			if n, news, err := ast.doParse(parser, news); err != nil {
 				fmsg := "while parsing %vth for %q: %v"
-				panic(fmt.Errorf(fmsg, i+1, name, err))
+				panic(fmt.Errorf(fmsg, i+1, nm, err))
 			} else if n != nil {
-				q := ast.docallback(name, callb, news, n.(Queryable))
+				q := ast.docallback(nm, cb, news, n.(Queryable))
 				if q != nil {
-					return ast.trydebug(q, news, "OrdChoice", name, i+1, true)
+					return ast.trydebug(q, news, "OrdChoice", nm, i+1, true)
 				}
-				return ast.trydebug(nil, s, "OrdChoice", name, i+1, "skip")
+				return ast.trydebug(nil, s, "OrdChoice", nm, i+1, "skip")
 			}
 		}
-		return ast.trydebug(nil, s, "OrdChoice", name, -1, false)
+		return ast.trydebug(nil, s, "OrdChoice", nm, -1, false)
 	}
 }
 
-// Kleene combinator, name identifies the NonTerminal constructed by this
-// combinator.
-func (ast *AST) Kleene(
-	name string, callb ASTNodify, parsers ...interface{}) Parser {
-
+// Kleene combinator, same as package level Kleene combinator
+// function. `nm` identifies the NonTerminal constructed by this combinator.
+func (ast *AST) Kleene(nm string, callb ASTNodify, ps ...interface{}) Parser {
 	var opScan, sepScan interface{}
-	switch l := len(parsers); l {
+	switch l := len(ps); l {
 	case 1:
-		opScan = parsers[0]
+		opScan = ps[0]
 	case 2:
-		opScan, sepScan = parsers[0], parsers[1]
+		opScan, sepScan = ps[0], ps[1]
 	default:
 		fmsg := "kleene parser %q doesn't accept %v parsers (should be 1 or 2)"
-		panic(fmt.Errorf(fmsg, name, l))
+		panic(fmt.Errorf(fmsg, nm, l))
 	}
 
 	return func(s Scanner) (ParsecNode, Scanner) {
 		var node ParsecNode
 		var err error
-		nt, news := ast.getnt(name), s.Clone()
+		nt, news := ast.getnt(nm), s.Clone()
 		for {
 			if node, news, err = ast.doParse(opScan, news); err != nil {
-				panic(fmt.Errorf("while opscan-parsing %q: %v", name, err))
+				panic(fmt.Errorf("while opscan-parsing %q: %v", nm, err))
 			} else if node == nil {
 				break
 			}
 			nt.Children = append(nt.Children, node.(Queryable))
 			if sepScan != nil {
 				if node, news, err = ast.doParse(sepScan, news); err != nil {
-					panic(fmt.Errorf("while sepscan-parsing %q: %v", name, err))
+					panic(fmt.Errorf("while sepscan-parsing %q: %v", nm, err))
 				} else if node == nil {
 					break
 				}
 			}
 		}
-		return ast.docallback(name, callb, news, nt), news
+		return ast.docallback(nm, callb, news, nt), news
 	}
 }
 
-// Many combinator, name identifies the NonTerminal constructed by this
-// combinator.
-func (ast *AST) Many(
-	name string, callb ASTNodify, parsers ...interface{}) Parser {
-
+// Many combinator, same as package level Many combinator
+// function. `nm` identifies the NonTerminal constructed by this combinator.
+func (ast *AST) Many(nm string, callb ASTNodify, parsers ...interface{}) Parser {
 	var opScan, sepScan interface{}
 	switch l := len(parsers); l {
 	case 1:
@@ -210,30 +204,30 @@ func (ast *AST) Many(
 		opScan, sepScan = parsers[0], parsers[1]
 	default:
 		fmsg := "many parser %q doesn't accept %v parsers (should be 1 or 2)"
-		panic(fmt.Errorf(fmsg, name, l))
+		panic(fmt.Errorf(fmsg, nm, l))
 	}
 
 	return func(s Scanner) (ParsecNode, Scanner) {
 		var node ParsecNode
 		var err error
-		nt, news := ast.getnt(name), s.Clone()
+		nt, news := ast.getnt(nm), s.Clone()
 		for {
 			if node, news, err = ast.doParse(opScan, news); err != nil {
-				panic(fmt.Errorf("while opscan-parsing %q: %v", name, err))
+				panic(fmt.Errorf("while opscan-parsing %q: %v", nm, err))
 			} else if node == nil {
 				break
 			}
 			nt.Children = append(nt.Children, node.(Queryable))
 			if sepScan != nil {
 				if node, news, err = ast.doParse(sepScan, news); err != nil {
-					panic(fmt.Errorf("while sepscan-parsing %q: %v", name, err))
+					panic(fmt.Errorf("while sepscan-parsing %q: %v", nm, err))
 				} else if node == nil {
 					break
 				}
 			}
 		}
 		if len(nt.Children) > 0 {
-			if q := ast.docallback(name, callb, news, nt); q != nil {
+			if q := ast.docallback(nm, callb, news, nt); q != nil {
 				return q, news
 			}
 		}
@@ -242,48 +236,46 @@ func (ast *AST) Many(
 	}
 }
 
-// ManyUntil combinator, name identifies the NonTerminal constructed by this
-// combinator.
-func (ast *AST) ManyUntil(
-	name string, callb ASTNodify, parsers ...interface{}) Parser {
-
+// Many combinator, same as package level Many combinator
+// function. `nm` identifies the NonTerminal constructed by this combinator.
+func (ast *AST) ManyUntil(nm string, callb ASTNodify, ps ...interface{}) Parser {
 	var opScan, sepScan, untilScan interface{}
-	switch l := len(parsers); l {
+	switch l := len(ps); l {
 	case 2:
-		opScan, untilScan = parsers[0], parsers[1]
+		opScan, untilScan = ps[0], ps[1]
 	case 3:
-		opScan, sepScan, untilScan = parsers[0], parsers[1], parsers[2]
+		opScan, sepScan, untilScan = ps[0], ps[1], ps[2]
 	default:
 		fmsg := "ManyUntil parser %q don't accept %v parsers (should be 2 or 3)"
-		panic(fmt.Errorf(fmsg, name, l))
+		panic(fmt.Errorf(fmsg, nm, l))
 	}
 
 	return func(s Scanner) (ParsecNode, Scanner) {
 		var node ParsecNode
 		var err error
-		nt, news := ast.getnt(name), s.Clone()
+		nt, news := ast.getnt(nm), s.Clone()
 		for {
 			if node, _, err = ast.doParse(untilScan, news.Clone()); err != nil {
-				panic(fmt.Errorf("while untilscan-parsing %q: %v", name, err))
+				panic(fmt.Errorf("while untilscan-parsing %q: %v", nm, err))
 			} else if node != nil {
 				break
 			}
 			if node, news, err = ast.doParse(opScan, news); err != nil {
-				panic(fmt.Errorf("while opscan-parsing %q: %v", name, err))
+				panic(fmt.Errorf("while opscan-parsing %q: %v", nm, err))
 			} else if node == nil {
 				break
 			}
 			nt.Children = append(nt.Children, node.(Queryable))
 			if sepScan != nil {
 				if node, news, err = ast.doParse(sepScan, news); err != nil {
-					panic(fmt.Errorf("while sepscan-parsing %q: %v", name, err))
+					panic(fmt.Errorf("while sepscan-parsing %q: %v", nm, err))
 				} else if node == nil {
 					break
 				}
 			}
 		}
 		if len(nt.Children) > 0 {
-			if q := ast.docallback(name, callb, news, nt); q != nil {
+			if q := ast.docallback(nm, callb, news, nt); q != nil {
 				return q, news
 			}
 		}
@@ -292,7 +284,8 @@ func (ast *AST) ManyUntil(
 	}
 }
 
-// Maybe combinator.
+// Maybe combinator, same as package level Maybe combinator
+// function. `nm` identifies the NonTerminal constructed by this combinator.
 func (ast *AST) Maybe(name string, callb ASTNodify, parser interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		node, news, err := ast.doParse(parser, s.Clone())
@@ -333,13 +326,17 @@ func (ast *AST) Prettyprint() {
 	ast.prettyprint(os.Stdout, "", ast.root)
 }
 
+// Dotstring return AST in graphviz dot format. Save this string to a
+// dot file and use graphviz tool generate a nice looking graph.
 func (ast *AST) Dotstring(name string) string {
 	return ast.dottext(name)
 }
 
+// Query is an experimental method on AST. Developers can use the
+// selector specification to pick one or more nodes from the AST.
 func (ast *AST) Query(selectors string, ch chan Queryable) {
-	selast := NewAST("selectors", 100)
-	y := ParseSelector(selast)
+	selast := NewAST("selectorast", 100)
+	y := parseselector(selast)
 	qsel, _ := selast.Parsewith(y, NewScanner([]byte(selectors)))
 	orsels := qsel.GetChildren()
 	for _, orsel := range orsels {

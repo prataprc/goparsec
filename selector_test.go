@@ -12,10 +12,10 @@ import "path/filepath"
 // TODO: interesting selectors
 //   tagstart *[class=term]
 
-func TestParseSelectorBasic(t *testing.T) {
+func TestParseselectorBasic(t *testing.T) {
 	// create and reuse.
 	selast := NewAST("selectors", 100)
-	sely := ParseSelector(selast)
+	sely := parseselector(selast)
 
 	// test parsing `*`
 	ref := "*"
@@ -399,10 +399,10 @@ func TestParseSelectorBasic(t *testing.T) {
 	//fmt.Println(string(buf.Bytes()))
 }
 
-func TestParseSelector(t *testing.T) {
+func TestParseselector(t *testing.T) {
 	updateref := false
 	selast := NewAST("selector", 100)
-	sely := ParseSelector(selast)
+	sely := parseselector(selast)
 
 	valrefs := map[int]string{
 		22: "[class=term]",
@@ -448,7 +448,7 @@ func TestParseSelector(t *testing.T) {
 func TestGetSelectorattr(t *testing.T) {
 	// create and reuse.
 	selast := NewAST("selectors", 100)
-	sely := ParseSelector(selast)
+	sely := parseselector(selast)
 
 	// test parsing `*`
 	ref := "[class=term]"
@@ -466,7 +466,7 @@ func TestGetSelectorattr(t *testing.T) {
 
 func TestGetSelectorcolon(t *testing.T) {
 	selast := NewAST("selectors", 100)
-	sely := ParseSelector(selast)
+	sely := parseselector(selast)
 	ref := ":nth-child(0)"
 	qsel, _ := selast.Parsewith(sely, NewScanner([]byte(ref)))
 	q := qsel.GetChildren()[0].GetChildren()[0]
