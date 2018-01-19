@@ -28,8 +28,8 @@ func TestNonTerminal(t *testing.T) {
 	nt.SetAttribute("key", "one")
 	ref1 := []string{"one", "two"}
 	ref2 := map[string][]string{
-		"name": []string{"one", "two"},
-		"key":  []string{"one"},
+		"name": {"one", "two"},
+		"key":  {"one"},
 	}
 	if x := nt.GetAttribute("name"); reflect.DeepEqual(x, ref1) == false {
 		t.Errorf("expected %v, got %v", ref1, x)
