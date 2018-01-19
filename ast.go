@@ -53,7 +53,7 @@ type Queryable interface {
 type ASTNodify func(name string, s Scanner, node Queryable) Queryable
 
 // AST to parse and construct Abstract Syntax Tree whose nodes confirm
-// to `Queryable` interfaces facilitating tree processing algorithms.
+// to `Queryable` interface, facilitating tree processing algorithms.
 type AST struct {
 	name   string
 	y      Parser
@@ -110,7 +110,8 @@ func (ast *AST) Reset() *AST {
 }
 
 // And combinator, same as package level And combinator function.
-// `name` identifies the NonTerminal constructed by this combinator.
+// `name` identifies the NonTerminal nodes constructed by this
+// combinator.
 func (ast *AST) And(name string, callb ASTNodify, parsers ...interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		var node ParsecNode
@@ -136,7 +137,8 @@ func (ast *AST) And(name string, callb ASTNodify, parsers ...interface{}) Parser
 }
 
 // OrdChoice combinator, same as package level OrdChoice combinator
-// function. `nm` identifies the NonTerminal constructed by this combinator.
+// function. `nm` identifies the NonTerminal nodes constructed by this
+// combinator.
 func (ast *AST) OrdChoice(nm string, cb ASTNodify, ps ...interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		for i, parser := range ps {
@@ -157,7 +159,8 @@ func (ast *AST) OrdChoice(nm string, cb ASTNodify, ps ...interface{}) Parser {
 }
 
 // Kleene combinator, same as package level Kleene combinator
-// function. `nm` identifies the NonTerminal constructed by this combinator.
+// function. `nm` identifies the NonTerminal nodes constructed by this
+// combinator.
 func (ast *AST) Kleene(nm string, callb ASTNodify, ps ...interface{}) Parser {
 	var opScan, sepScan interface{}
 	switch l := len(ps); l {
@@ -194,7 +197,8 @@ func (ast *AST) Kleene(nm string, callb ASTNodify, ps ...interface{}) Parser {
 }
 
 // Many combinator, same as package level Many combinator
-// function. `nm` identifies the NonTerminal constructed by this combinator.
+// function. `nm` identifies the NonTerminal nodes constructed by this
+// combinator.
 func (ast *AST) Many(nm string, callb ASTNodify, parsers ...interface{}) Parser {
 	var opScan, sepScan interface{}
 	switch l := len(parsers); l {
@@ -236,8 +240,8 @@ func (ast *AST) Many(nm string, callb ASTNodify, parsers ...interface{}) Parser 
 	}
 }
 
-// Many combinator, same as package level Many combinator
-// function. `nm` identifies the NonTerminal constructed by this combinator.
+// Many combinator, same as package level Many combinator function.
+// `nm` identifies the NonTerminal nodes constructed by this combinator.
 func (ast *AST) ManyUntil(nm string, callb ASTNodify, ps ...interface{}) Parser {
 	var opScan, sepScan, untilScan interface{}
 	switch l := len(ps); l {
@@ -284,8 +288,8 @@ func (ast *AST) ManyUntil(nm string, callb ASTNodify, ps ...interface{}) Parser 
 	}
 }
 
-// Maybe combinator, same as package level Maybe combinator
-// function. `nm` identifies the NonTerminal constructed by this combinator.
+// Maybe combinator, same as package level Maybe combinator function.
+// `nm` identifies the NonTerminal nodes constructed by this combinator.
 func (ast *AST) Maybe(name string, callb ASTNodify, parser interface{}) Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		node, news, err := ast.doParse(parser, s.Clone())
@@ -317,8 +321,7 @@ func (ast *AST) GetValue() string {
 	return ast.root.GetValue()
 }
 
-// Prettyprint to standard output the syntax-tree in human readable plain
-// text.
+// Prettyprint to standard output the syntax-tree in human readable plain text.
 func (ast *AST) Prettyprint() {
 	if ast.root == nil {
 		fmt.Println("root is nil")

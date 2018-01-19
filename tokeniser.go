@@ -16,8 +16,9 @@ import "unicode"
 import "unicode/utf8"
 import "unicode/utf16"
 
-// String parse double quoted string in input text, this parser is
-// incompatible with AST combinators. Skip leading whitespace.
+// String parse double quoted string in input text, this parser
+// returns string type as ParsecNode, hence incompatible with
+// AST combinators. Skip leading whitespace.
 func String() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		s.SkipWS()
@@ -161,8 +162,9 @@ func OrdTokens(patterns []string, names []string) Parser {
 	}
 }
 
-// End is a parser function to detect end of scanner output.
-// Parser is not compatible with AST{}. Instead, use AST:End method.
+// End is a parser function to detect end of scanner output, return
+// boolean as ParseNode, hence incompatible with AST{}. Instead, use
+// AST:End method.
 func End() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		if s.Endof() {
@@ -173,7 +175,8 @@ func End() Parser {
 }
 
 // NoEnd is a parser function to detect not-an-end of
-// scanner output. Parser is not compatible with AST{}.
+// scanner output, return boolean as ParsecNode, hence
+// incompatible with AST{}.
 func NoEnd() Parser {
 	return func(s Scanner) (ParsecNode, Scanner) {
 		if !s.Endof() {

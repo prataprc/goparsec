@@ -1,5 +1,5 @@
 /*
-Package parsec provies a library of parser-combinators. The basic
+Package parsec provides a library of parser-combinators. The basic
 idea behind parsec module is that, it allows programmers to compose
 basic set of terminal parsers, a.k.a tokenizers and compose them
 together as a tree of parsers, using combinators like: And,
@@ -31,7 +31,7 @@ function takes a Scanner object and applies the underlying parsing
 logic, if underlying logic succeeds Nodify callback is dispatched
 and a ParsecNode and a new Scanner object (with its cursor moved
 forward) is returned. If parser fails to match, it shall return
-the input scanner object as it is along with nil ParsecNode.
+the input scanner object as it is, along with nil ParsecNode.
 
 ParsecNode, an interface type encapsulates one or more tokens from
 i/p text, as terminal node or non-terminal node.
@@ -73,7 +73,11 @@ parsing logic, like parsing nested arrays:
 		Y = parsec.OrdChoice(nil, value)
 	}
 
+
 Terminal parsers
+
+Parsers for standard set of tokens are supplied along with this package.
+Most of these parsers return Terminal type as ParseNode.
 
  * Char, match a single character skipping leading whitespace.
  * Float, match a float literal skipping leading whitespace.
@@ -101,10 +105,10 @@ AST and Queryable are unstable, and are expected to change in future.
 
 While Scanner, Parser, ParsecNode types are re-used in AST and Queryable,
 combinator functions are re-implemented as AST methods. Similarly type
-ASTNodify is to be used instead of Nodify type. Otherwise all of the
+ASTNodify is to be used instead of Nodify type. Otherwise all the
 parsec techniques mentioned above are equally applicable on AST.
 
-Additionally, following points are worth noting down while using AST,
+Additionally, following points are worth noting while using AST,
  * Combinator methods supplied via AST can be named.
 
 */
