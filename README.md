@@ -17,12 +17,11 @@ This package contains following components,
 * Standard set of combinators.
 * [Regular expression](https://golang.org/pkg/regexp/) based simple-scanner.
 * Standard set of tokenizers.
-
 * To construct syntax-trees based on detailed grammar try with
   [AST struct](http://godoc.org/github.com/prataprc/goparsec#AST).
   * Standard set of combinators are exported as methods to AST.
   * Generate dot-graph EG: [dotfile](testdata/simple.dot)
-    for [html](testdata/simple.html).
+  for [html](testdata/simple.html).
   * Pretty print on the console.
   * Make debugging easier.
 
