@@ -193,7 +193,7 @@ func (s *SimpleScanner) SkipWSUnicode() ([]byte, Scanner) {
 	for i, r := range bytes2str(s.buf[s.cursor:]) {
 		if unicode.IsSpace(r) {
 			if s.tracklineno && r == '\n' {
-				s.lineno += 1
+				s.lineno++
 			}
 			continue
 		}

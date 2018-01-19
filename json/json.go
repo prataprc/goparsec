@@ -187,7 +187,7 @@ func (s *JSONScanner) SetWSPattern(pattern string) parsec.Scanner {
 	return s
 }
 
-// SetWSPattern method receiver in Scanner interface.
+// TrackLineno method receiver in Scanner interface.
 func (s *JSONScanner) TrackLineno() parsec.Scanner {
 	return s
 }

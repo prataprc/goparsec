@@ -249,7 +249,7 @@ func TestForwardReference(t *testing.T) {
 		}, Token("\\w+", "WORD"),
 	)
 	s = NewScanner([]byte("one"))
-	node, s = y(s)
+	node, _ = y(s)
 	if node != MaybeNone("missing") {
 		t.Errorf("expected %v, got %v", node, MaybeNone("missing"))
 	}

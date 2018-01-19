@@ -11,7 +11,7 @@ func TestASTReset(t *testing.T) {
 	ast := NewAST("testand", 100)
 	y := ast.And("and", nil, Atom("hello", "TERM"))
 	s := NewScanner([]byte("hello"))
-	node, s := ast.Parsewith(y, s)
+	node, _ := ast.Parsewith(y, s)
 	if x, y := ast.root.GetValue(), node.GetValue(); x != y {
 		t.Errorf("expected %v, got %v", x, y)
 	}

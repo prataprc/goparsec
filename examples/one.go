@@ -28,6 +28,6 @@ func main() {
 	array = ast.And("array", nil, opensqr, items, closesqr)
 
 	s := parsec.NewScanner([]byte(input))
-	node, s := ast.Parsewith(array, s)
+	node, _ := ast.Parsewith(array, s)
 	fmt.Println(node.GetValue())
 }

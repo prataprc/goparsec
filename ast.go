@@ -242,7 +242,7 @@ func (ast *AST) Many(nm string, callb ASTNodify, parsers ...interface{}) Parser 
 	}
 }
 
-// Many combinator, same as package level Many combinator function.
+// ManyUntil combinator, same as package level Many combinator function.
 // `nm` identifies the NonTerminal nodes constructed by this combinator.
 func (ast *AST) ManyUntil(nm string, callb ASTNodify, ps ...interface{}) Parser {
 	var opScan, sepScan, untilScan interface{}
@@ -418,11 +418,10 @@ func (ast *AST) prettyprint(w io.Writer, prefix string, node Queryable) {
 	if node.IsTerminal() {
 		fmt.Fprintf(w, "%v*%v: %q\n", prefix, node.GetName(), node.GetValue())
 		return
-	} else {
-		fmt.Fprintf(w, "%v%v @ %v\n", prefix, node.GetName(), node.GetPosition())
-		for _, child := range node.GetChildren() {
-			ast.prettyprint(w, prefix+"  ", child)
-		}
+	}
+	fmt.Fprintf(w, "%v%v @ %v\n", prefix, node.GetName(), node.GetPosition())
+	for _, child := range node.GetChildren() {
+		ast.prettyprint(w, prefix+"  ", child)
 	}
 }
 
