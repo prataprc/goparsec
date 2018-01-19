@@ -18,10 +18,6 @@ coverage:
 	go test -coverprofile=coverage.out
 	go tool cover -html=coverage.out
 	rm -rf coverage.out
-	@for dir in $(SUBDIRS); do \
-		echo $$dir "..."; \
-		$(MAKE) -C $$dir test; \
-	done
 
 vet:
 	go vet ./...
