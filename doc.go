@@ -6,7 +6,7 @@ together as a tree of parsers, using combinators like: And,
 OrdChoice, Kleene, Many, Maybe.
 
 To begin with there are four basic Types that needs to be kept in
-mind while creating and composing parsers.
+mind while creating and composing parsers,
 
 Types
 
@@ -110,6 +110,10 @@ parsec techniques mentioned above are equally applicable on AST.
 
 Additionally, following points are worth noting while using AST,
  * Combinator methods supplied via AST can be named.
+ * All combinators from AST object will create and return NonTerminal
+   as the Queryable type.
+ * ASTNodify function can interpret its Queryable argument and return
+   a different type implementing Queryable interface.
 
 */
 package parsec

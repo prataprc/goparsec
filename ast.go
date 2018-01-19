@@ -49,7 +49,9 @@ type Queryable interface {
 //  * exceptional cases for a regex pattern.
 //
 // Note that some combinators like Kleene shall not interpret the return
-// value from ASTNodify callback.
+// value from ASTNodify callback. `node` will always be of NonTerminal
+// type, although callback can process it and return a different type,
+// provided it implements Queryable interface.
 type ASTNodify func(name string, s Scanner, node Queryable) Queryable
 
 // AST to parse and construct Abstract Syntax Tree whose nodes confirm

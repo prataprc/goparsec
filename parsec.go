@@ -57,7 +57,8 @@ func And(callb Nodify, parsers ...interface{}) Parser {
 // that can further be used to construct higher level parsers.
 //
 // The first matching parser function's output is passed
-// as argument to Nodify callback. If none of the parsers
+// as argument to Nodify callback, that is []ParsecNode argument
+// will just have one element in it. If none of the parsers
 // match the input, then OrdChoice will fail without consuming
 // any input.
 func OrdChoice(callb Nodify, parsers ...interface{}) Parser {
