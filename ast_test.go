@@ -376,7 +376,7 @@ func TestGetValue(t *testing.T) {
 	}
 	data = bytes.Trim(data, " \t\r\n")
 	ast := NewAST("html", 100)
-	y := makehtmly(ast)
+	y := makeexacthtmly(ast)
 	s := NewScanner(data).TrackLineno()
 	node, _ := ast.Parsewith(y, s)
 	if node.GetValue() != string(data) {
@@ -398,7 +398,7 @@ func TestPrettyprint(t *testing.T) {
 	}
 
 	ast := NewAST("html", 100)
-	y := makehtmly(ast)
+	y := makeexacthtmly(ast)
 	s := NewScanner(data).TrackLineno()
 	ast.Parsewith(y, s)
 	buf := bytes.NewBuffer(make([]byte, 0, 1024))
@@ -424,20 +424,19 @@ func TestDotstring(t *testing.T) {
 	ref = bytes.Trim(ref, " \t\r\n")
 
 	ast := NewAST("html", 100)
-	y := makehtmly(ast)
+	y := makeexacthtmly(ast)
 	s := NewScanner(data).TrackLineno()
 	ast.Parsewith(y, s)
 
 	dotout := ast.dottext("testhtml")
 	if string(ref) != dotout {
-		//t.Errorf("expected %v", string(ref))
-		//t.Errorf("got %v", dotout)
+		t.Errorf("expected %v", string(ref))
+		t.Errorf("got %v", dotout)
 	}
 }
 
-func makehtmly(ast *AST) Parser {
+func makeexacthtmly(ast *AST) Parser {
 	var tag Parser
-
 	opentag := AtomExact("<", "OT")
 	closetag := AtomExact(">", "CT")
 	equal := AtomExact("=", "EQUAL")

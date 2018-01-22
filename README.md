@@ -33,6 +33,7 @@ Quick links
 
 * [Go documentation](http://godoc.org/github.com/prataprc/goparsec)
 * [Using the builtin scanner](#using-the-builtin-scanner).
+* [Simple HTML parser](https://github.com/prataprc/goparsec/blob/master/html_test.go).
 * [Projects using goparsec](#projects-using-goparsec).
 * [Simple html parser](#simple-html-parser).
 * [Articles](#articles).
@@ -113,34 +114,6 @@ To run the example program,
 
     # to parse JSON string
     $ go run tools/parsec/parsec.go -json '{ "key1" : [10, "hello", true, null, false] }'
-```
-
-Simple html parser
-------------------
-
-```go
-func makehtmly(ast *AST) Parser {
-	var tag Parser
-
-	opentag := AtomExact("<", "OT")
-	closetag := AtomExact(">", "CT")
-	equal := AtomExact("=", "EQUAL")
-	slash := TokenExact("/[ \t]*", "SLASH")
-	tagname := TokenExact("[a-z][a-zA-Z0-9]*", "TAG")
-	attrkey := TokenExact("[a-z][a-zA-Z0-9]*", "ATTRK")
-	text := TokenExact("[^<>]+", "TEXT")
-	ws := TokenExact("[ \t]+", "WS")
-
-	element := ast.OrdChoice("element", nil, text, &tag)
-	elements := ast.Kleene("elements", nil, element)
-	attr := ast.And("attribute", nil, attrkey, equal, String())
-	attrws := ast.And("attrws", nil, attr, ast.Maybe("ws", nil, ws))
-	attrs := ast.Kleene("attributes", nil, attrws)
-	tstart := ast.And("tagstart", nil, opentag, tagname, attrs, closetag)
-	tend := ast.And("tagend", nil, opentag, slash, tagname, closetag)
-	tag = ast.And("tag", nil, tstart, elements, tend)
-	return tag
-}
 ```
 
 Projects using goparsec

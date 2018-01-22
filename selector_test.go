@@ -481,7 +481,7 @@ func TestGetSelectorcolon(t *testing.T) {
 func TestFilterbyname(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlroot, _ := htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlroot, _ := htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	node := htmlroot.GetChildren()[0].GetChildren()[0]
 	if filterbyname(node, "OT") == false {
@@ -496,7 +496,7 @@ func TestFilterbyname(t *testing.T) {
 func TestFilterbyattr(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlroot, _ := htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlroot, _ := htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	term := htmlroot.GetChildren()[0].GetChildren()[0]
 	if filterbyattr(term, "", "", "") == false {
@@ -529,7 +529,7 @@ func TestFilterbyattr(t *testing.T) {
 func TestFilterbycolon(t *testing.T) {
 	html := []byte("<a><b></b><em></em></a>")
 	htmlast := NewAST("html", 100)
-	htmlroot, _ := htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlroot, _ := htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	nttagstart := htmlroot.GetChildren()[0]
 	ntelements := htmlroot.GetChildren()[1]
@@ -644,7 +644,7 @@ func TestFilterbycolon(t *testing.T) {
 func TestAstwalk1(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test with "*"
 	ch := make(chan Queryable, 1000)
@@ -674,7 +674,7 @@ func TestAstwalk1(t *testing.T) {
 func TestAstwalk2(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test with "tag OT"
 	ch := make(chan Queryable, 1000)
@@ -699,7 +699,7 @@ func TestAstwalk2(t *testing.T) {
 func TestAstwalk3(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test with "tagstart > CT"
 	ch := make(chan Queryable, 1000)
@@ -724,7 +724,7 @@ func TestAstwalk3(t *testing.T) {
 func TestAstwalk4(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test with "OT + TAG"
 	ch := make(chan Queryable, 1000)
@@ -749,7 +749,7 @@ func TestAstwalk4(t *testing.T) {
 func TestAstwalk5(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test with "OT ~ TAG"
 	ch := make(chan Queryable, 1000)
@@ -774,7 +774,7 @@ func TestAstwalk5(t *testing.T) {
 func TestAstwalk6(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test with "tagstart ~ tagend TAG"
 	ch := make(chan Queryable, 1000)
@@ -799,7 +799,7 @@ func TestAstwalk6(t *testing.T) {
 func TestAstwalk7(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test with complexpatterns
 	ch := make(chan Queryable, 1000)
@@ -824,7 +824,7 @@ func TestAstwalk7(t *testing.T) {
 func TestAstwalk8(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test case-insensitive
 	ch := make(chan Queryable, 1000)
@@ -849,7 +849,7 @@ func TestAstwalk8(t *testing.T) {
 func TestAstwalk9(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test attributes
 	ch := make(chan Queryable, 1000)
@@ -874,7 +874,7 @@ func TestAstwalk9(t *testing.T) {
 func TestAstwalk10(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test colon names
 	ch := make(chan Queryable, 1000)
@@ -899,7 +899,7 @@ func TestAstwalk10(t *testing.T) {
 func TestAstwalk11(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test with "tag[class=term]:nth-child(1)"
 	ch := make(chan Queryable, 1000)
@@ -916,7 +916,7 @@ func TestAstwalk11(t *testing.T) {
 func TestAstwalkNeg(t *testing.T) {
 	html := []byte("<a></a>")
 	htmlast := NewAST("html", 100)
-	htmlast.Parsewith(makehtmly(htmlast), NewScanner(html))
+	htmlast.Parsewith(makeexacthtmly(htmlast), NewScanner(html))
 
 	// test with "tagend ~ tagstart"
 	ch := make(chan Queryable, 1000)
