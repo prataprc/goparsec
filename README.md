@@ -36,7 +36,6 @@ Quick links
 * [Using the builtin scanner](#using-the-builtin-scanner).
 * [Simple HTML parser][htmlparsec-link].
 * [Projects using goparsec](#projects-using-goparsec).
-* [Simple html parser](#simple-html-parser).
 * [Articles](#articles).
 * [How to contribute](#how-to-contribute).
 
