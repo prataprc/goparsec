@@ -76,7 +76,7 @@ more information on each of these methods.
 Panics and Recovery
 -------------------
 
-Panics are to expected when APIs are misused. Programmers might choose
+Panics are to be expected when APIs are misused. Programmers might choose
 to ignore errors, but not panics. For example:
 
 * Kleene and Many combinators take one or two parsers as arguments. Less than
