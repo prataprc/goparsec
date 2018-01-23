@@ -7,6 +7,7 @@ Build and Release Check list
 * Set up with https://coveralls.io for coverage analysis.
 * Set up with https://travis-ci.org/ for continuous integration and
   enable daily CRON job.
+* Spell check all `.md` files.
 
 Badges
 ------

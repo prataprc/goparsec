@@ -4,7 +4,7 @@ Querying Abstract Syntax Tree
 ASTQuery is the simple idea of applying CSS selectors on Abstract Syntax Tree.
 
 Abstract Syntax Tree (AST) is constructed by parsing i/p text stream for
-tokens and organising tokens as a tree of Terminal nodes and NonTerminal nodes.
+tokens and organizing tokens as a tree of Terminal nodes and NonTerminal nodes.
 Typically, Terminal nodes are leaf nodes holding a token of symbols from
 input stream. And NonTerminals are intermediate nodes that are constructed
 using other intermediate and leaf nodes. Thus a Syntax Tree is constructed.
@@ -113,13 +113,13 @@ In general, irrespective of the language used to parse the text, AST should
 be made of NonTerminal nodes (intermediate nodes) and Terminal nodes (leaf
 nodes). Nodes can either be Terminal node or NonTerminal node, also called
 as leaf-node or intermediate-node. Typically, leaf-nodes are parsed by
-tokernizers and intermediate-nodes are parsed by combinators. In the
+tokenizers and intermediate-nodes are parsed by combinators. In the
 Lex-and-Yacc parlance, we can say that leaf-nodes are parsed by lexers
 and intermediate-nodes are parsed by yaccer.
 
 And to help AST Query to walk through the tree and query each node
-for matchable selectors let us attach some behaviours to Terminal and
-NonTerminal nodes and call the collection of behaviours as ``Queryable``
+for matchable selectors let us attach some behaviors to Terminal and
+NonTerminal nodes and call the collection of behaviors as ``Queryable``
 
 ```go
 // Queryable interface to be implemented by all nodes, both terminal
@@ -158,10 +158,10 @@ There are three aspects to node that are important for `selectors`
 specification:
 
 * Name name of the node, node names are case-insensitive, should begin
-  with english alphabet, and contain only alphnanumeric characters.
+  with English alphabet, and contain only alphanumeric characters.
 * Any number of `attributes` attached to a node, node attributes are
-  case-insensitive, should begin with english alphabet, and contain only
-  alphnanumeric characters.
+  case-insensitive, should begin with English alphabet, and contain only
+  alphanumeric characters.
 
 **node name**
 
@@ -202,32 +202,32 @@ Default attributes
 
 **class attribute**
 
-Every node carry atleast one class attribute. If it is intermediate-node,
+Every node carry at least one class attribute. If it is intermediate-node,
 its `class` attribute is set to `nonterm`.  If it is leaf-node,
 its `class` attribute is set to `term`. User specified values for `class`
-attribute should start with english character and contain - alphabets,
+attribute should start with English character and contain - alphabets,
 numbers, hyphen and underscore.
 
 **value attribute**
 
 Every node has an underlying value which is a sub-set of parsed input-text.
 For a leaf-node, `value` is the text matched by the regular-expression
-used in tokeniser. For a intermediate-node, `value` is concatination
-of all leaf-nodes' values decending from the intermediate-node.
+used in tokenizer. For a intermediate-node, `value` is concatenation
+of all leaf-nodes' values descending from the intermediate-node.
 
 User-Attributes
 ---------------
 
 User attributes can be programmatically accessed using ``Queryable``
-behaviour. More specifically, APIs like GetAttribute(), GetAttributes()
+behavior. More specifically, APIs like GetAttribute(), GetAttributes()
 and SetAttribute() can be used for accessing node's attributes.
 
 Among the user-attributes **id attribute** is treated as special because,
 like class, there is a short-hand notation for id. Similar to `class`
 attribute, user specified value for `id` attribute should start with
-english character, and contain - alphabets, numbers, hyphen and underscore.
+English character, and contain - alphabets, numbers, hyphen and underscore.
 
-Selector syntax for quering AST
+Selector syntax for querying AST
 -------------------------------
 
 Scope of AST Query is to query syntax-tree for desired set of nodes, the query
@@ -257,7 +257,7 @@ HTML.
 **Note that node-name is equivalent to html tag-name**
 
 To query for all terminal nodes, which actually make up the entire HTML input
-otherthan whitespace, we can use the `class` attribute.
+other than white space, we can use the `class` attribute.
 
 ```go
 	ch := make(chan Queryable, 100)
