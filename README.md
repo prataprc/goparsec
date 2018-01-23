@@ -9,21 +9,22 @@ Parser combinator library in Golang
 [![Go Report Card](https://goreportcard.com/badge/github.com/prataprc/goparsec)](https://goreportcard.com/report/github.com/prataprc/goparsec)
 
 A library to construct top-down recursive backtracking parsers using
-parser-combinators. To know more about theory of parser
-combinators, [refer here](http://en.wikipedia.org/wiki/Parser_combinator).
+parser-combinators. Before proceeding you might want to take at peep
+at [theory of parser combinators][theory-link]. As for this package, it
+provides:
 
-This package contains following components,
+* A standard set of combinators.
+* [Regular expression][regexp-link] based simple-scanner.
+* Standard set of tokenizers based on the simple-scanner.
 
-* Standard set of combinators.
-* [Regular expression](https://golang.org/pkg/regexp/) based simple-scanner.
-* Standard set of tokenizers.
-* To construct syntax-trees based on detailed grammar try with
-  [AST struct](http://godoc.org/github.com/prataprc/goparsec#AST).
-  * Standard set of combinators are exported as methods to AST.
-  * Generate dot-graph EG: [dotfile](testdata/simple.dot)
+To construct syntax-trees based on detailed grammar try with
+[AST struct][ast-link]
+
+* Standard set of combinators are exported as methods to AST.
+* Generate dot-graph EG: [dotfile](testdata/simple.dot)
   for [html](testdata/simple.html).
-  * Pretty print on the console.
-  * Make debugging easier.
+* Pretty print on the console.
+* Make debugging easier.
 
 **NOTE that AST object is a recent development and expect user to adapt to
 newer versions**
@@ -31,9 +32,9 @@ newer versions**
 Quick links
 -----------
 
-* [Go documentation](http://godoc.org/github.com/prataprc/goparsec)
+* [Go documentation][goparsec-godoc-link].
 * [Using the builtin scanner](#using-the-builtin-scanner).
-* [Simple HTML parser](https://github.com/prataprc/goparsec/blob/master/html_test.go).
+* [Simple HTML parser][htmlparsec-link].
 * [Projects using goparsec](#projects-using-goparsec).
 * [Simple html parser](#simple-html-parser).
 * [Articles](#articles).
@@ -59,35 +60,32 @@ Every combinator should confirm to the following signature,
 Combinators take a variable number of parser functions and
 return a new parser function.
 
-If the intermediate nodes are created by the Combinators then it will be of
-the following types:
-
 Using the builtin scanner
 -------------------------
 
-The builtin scanner library manages the input buffer and implements a cursor
+Builtin scanner library manages the input buffer and implements a cursor
 into the buffer. Create a new scanner instance,
 
 ```go
     s := parsec.NewScanner(text)
 ```
 
-The scanner library supplies method receivers like ``Match(pattern)``,
-``SkipAny(pattern)`` and ``Endof()``, refer to scanner.go for more information
-on each of these methods.
+The scanner library supplies method like ``Match(pattern)``,
+``SkipAny(pattern)`` and ``Endof()``, [refer][goparsec-godoc-link] to for
+more information on each of these methods.
 
 Panics and Recovery
 -------------------
 
 Panics are to expected when APIs are misused. Programmers might choose
-to ignore the errors, but not panics. For example:
+to ignore errors, but not panics. For example:
 
-* Combinators accept Parser function or pointer to Parser function. Anything
-  else will panic.
 * Kleene and Many combinators take one or two parsers as arguments. Less than
   one or more than two will throw a panic.
 * ManyUntil combinator take two or three parsers as arguments. Less than two
   or more than three will throw a panic.
+* Combinators accept Parser function or pointer to Parser function. Anything
+  else will panic.
 * When using invalid regular expression to match a token.
 
 
@@ -147,3 +145,9 @@ How to contribute
 * If the changeset is more than few lines, please generate a
   [report card](https://goreportcard.com/report/github.com/prataprc/goparsec).
 * As of now, branch ``master`` is the development branch.
+
+[theory-link]: http://en.wikipedia.org/wiki/Parser_combinator
+[regexp-link]: https://golang.org/pkg/regexp
+[ast-link]: http://godoc.org/github.com/prataprc/goparsec#AST
+[goparsec-godoc-link]: http://godoc.org/github.com/prataprc/goparsec
+[htmlparsec-link]: https://github.com/prataprc/goparsec/blob/master/html_test.go

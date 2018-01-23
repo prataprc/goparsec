@@ -9,6 +9,20 @@ Build and Release Check list
   enable daily CRON job.
 * Spell check all `.md` files.
 
+Repository structure
+--------------------
+
+* README.md file that includes -
+  * Badges.
+  * Bullet point of why and what of this package.
+  * Quicklinks.
+  * Short descriptions and details about this package.
+  * Panic and recovery.
+  * Examples.
+  * External references.
+  * How to contribute.
+* RELEASE.md checklist.
+
 Badges
 ------
 
