@@ -20,13 +20,13 @@ type Null string
 // True is alias for string type denoting JSON `true`
 type True string
 
-// False is alias for string type denoting JSON `null`
+// False is alias for string type denoting JSON `false`
 type False string
 
-// Num is alias for string type denoting JSON `null`
+// Num is alias for string type denoting JSON `number`
 type Num string
 
-// String is alias for string type denoting JSON `null`
+// String is alias for string type denoting JSON `string`
 type String string
 
 // Y is root Parser, usually called as `s` in CFG theory.
