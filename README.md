@@ -35,6 +35,7 @@ Quick links
 * [Go documentation][goparsec-godoc-link].
 * [Using the builtin scanner](#using-the-builtin-scanner).
 * [Simple HTML parser][htmlparsec-link].
+* [Querying Abstract Syntax Tree][astquery-link]
 * [Projects using goparsec](#projects-using-goparsec).
 * [Articles](#articles).
 * [How to contribute](#how-to-contribute).
@@ -150,3 +151,4 @@ How to contribute
 [ast-link]: http://godoc.org/github.com/prataprc/goparsec#AST
 [goparsec-godoc-link]: http://godoc.org/github.com/prataprc/goparsec
 [htmlparsec-link]: https://github.com/prataprc/goparsec/blob/master/html_test.go
+[astquery-link]: https://prataprc.github.io/astquery.io

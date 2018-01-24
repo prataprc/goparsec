@@ -3,6 +3,7 @@ package parsec
 import "fmt"
 import "bytes"
 import "testing"
+import "net/http"
 import "io/ioutil"
 
 func TestHTMLValue(t *testing.T) {
@@ -43,6 +44,39 @@ func TestHTMLValue(t *testing.T) {
 	fmt.Println()
 }
 
+func TestExample(t *testing.T) {
+	ast := NewAST("html", 100)
+	y := makehtmly(ast)
+	resp, err := http.Get("https://example.com/")
+	if err != nil {
+		t.Error(err)
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(string(data))
+
+	s := NewScanner(data).TrackLineno()
+	ast.Parsewith(y, s)
+
+	ch := make(chan Queryable, 100)
+	go ast.Query("attrunquoted,attrsingleq,attrdoubleq", ch)
+	for node := range ch {
+		cs := node.GetChildren()
+		if cs[0].GetValue() != "href" {
+			continue
+		}
+		if len(cs) == 3 {
+			fmt.Println(cs[2].GetValue())
+		} else {
+			fmt.Println(cs[3].GetValue())
+		}
+	}
+	fmt.Println()
+}
+
 func makehtmly(ast *AST) Parser {
 	var tag Parser
 
@@ -51,33 +85,30 @@ func makehtmly(ast *AST) Parser {
 	tagcbrk := Atom(">", "CT")
 	tagcend := Atom("/>", "CT")
 	tagcopen := Atom("</", "CT")
-	equal := Atom(`\s=\s`, "EQ")
+	equal := Atom(`=`, "EQ")
 	single := Atom("'", "SQUOTE")
 	double := Atom(`"`, "DQUOTE")
-	tagname := Token(`[a-z][a-zA-Z0-9]*`, "TAGNAME")
-	attrname := Token(`[^\s"'>/=[[:cntrl]]]+`, "ATTRNAME")
+	tagname := Token(`[a-zA-Z0-9]+`, "TAGNAME")
+	attrname := Token(`[a-zA-Z0-9_-]+`, "ATTRNAME")
 	attrval1 := Token(`[^\s"'=<>`+"`]+", "ATTRVAL1")
 	attrval2 := Token(`[^']*`, "ATTRVAL2")
 	attrval3 := Token(`[^"]*`, "ATTRVAL3")
 	entity := Token(`&#?[a-bA-Z0-9]+;`, "ENTITY")
 	text := Token(`[^<]+`, "TEXT")
+	doctype := Token(`<!doctype[^>]+>`, "DOCTYPE")
 
 	// non-terminals
 	attrunquoted := ast.And(
-		"attrunquoted", nil,
-		attrname, equal, attrval1,
+		"attrunquoted", nil, attrname, equal, attrval1,
 	)
 	attrsingleq := ast.And(
-		"attrsingleq", nil,
-		attrname, equal, single, attrval2, single,
+		"attrsingleq", nil, attrname, equal, single, attrval2, single,
 	)
 	attrdoubleq := ast.And(
-		"attrdoubleq", nil,
-		attrname, equal, double, attrval3, double,
+		"attrdoubleq", nil, attrname, equal, double, attrval3, double,
 	)
 	attr := ast.OrdChoice(
-		"attribute", nil,
-		attrname, attrunquoted, attrsingleq, attrdoubleq,
+		"attribute", nil, attrsingleq, attrdoubleq, attrunquoted, attrname,
 	)
 	attrs := ast.Kleene("attributes", nil, attr, nil)
 
@@ -86,13 +117,12 @@ func makehtmly(ast *AST) Parser {
 
 	content := ast.OrdChoice("content", nil, entity, text, &tag)
 	contents := ast.Maybe(
-		"maybecontents", nil,
-		ast.Kleene("contents", nil, content, nil),
+		"maybecontents", nil, ast.Kleene("contents", nil, content, nil),
 	)
 
 	tagempty := ast.And("tagempty", nil, tagobrk, tagname, attrs, tagcend)
 	tagproper := ast.And("tagproper", nil, tagopen, contents, tagclose)
-	tag = ast.OrdChoice("tag", nil, tagempty, tagproper)
+	tag = ast.OrdChoice("tag", nil, doctype, tagempty, tagproper)
 	return ast.Kleene("html", nil, tag, nil)
 }
 
