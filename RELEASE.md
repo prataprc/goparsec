@@ -30,6 +30,7 @@ Repository structure
 Badges
 ------
 
+* Talk on matrix.
 * CI badge
 * Coverage badge
 * Godoc reference.
