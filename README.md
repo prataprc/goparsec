@@ -1,7 +1,7 @@
 Parser combinator library in Golang
 ===================================
 
-<a href="https://www.irccloud.com/invite?channel=%23bnc&amp;hostname=irc.mozilla.org&amp;port=6697" target="_blank"><img src="https://img.shields.io/badge/IRC-%23bnc-1e72ff.svg?style=flat"  height="20"></a>
+[![IRC #bnc](https://img.shields.io/badge/IRC-%23bnc-1e72ff.svg?style=flat)](https://www.irccloud.com/invite?channel=%23bnc&amp;hostname=irc.mozilla.org&amp;port=6697)
 [![Build Status](https://travis-ci.org/prataprc/goparsec.svg?branch=master)](https://travis-ci.org/prataprc/goparsec)
 [![Coverage Status](https://coveralls.io/repos/github/prataprc/goparsec/badge.svg?branch=master)](https://coveralls.io/github/prataprc/goparsec?branch=master)
 [![GoDoc](https://godoc.org/github.com/prataprc/goparsec?status.png)](https://godoc.org/github.com/prataprc/goparsec)
