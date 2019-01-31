@@ -152,7 +152,7 @@ How to contribute
 [goparsec-godoc-link]: http://godoc.org/github.com/prataprc/goparsec
 [htmlparsec-link]: https://github.com/prataprc/goparsec/blob/master/html_test.go
 [astquery-link]: https://prataprc.github.io/astquery.io
-[article1-link](http://prataprc.github.io/parser-combinator-composition.html)
-[article2-link](http://prataprc.github.io/parser-combinator-recursive.html)
-[article3-link](http://prataprc.github.io/parser-combinator-maybe.html)
+[article1-link]: http://prataprc.github.io/parser-combinator-composition.html
+[article2-link]: http://prataprc.github.io/parser-combinator-recursive.html
+[article3-link]: http://prataprc.github.io/parser-combinator-maybe.html
 [report-link]: https://goreportcard.com/report/github.com/prataprc/goparsec
